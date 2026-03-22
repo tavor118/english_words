@@ -59,6 +59,7 @@ function App() {
           <WordList
             words={words}
             onDelete={deleteWord}
+            onUpdate={updateWord}
             onExport={() => exportWords(words)}
             onImport={handleImport}
             onNavigateToAdd={(word) => { setPrefillWord(word); setView('add'); }}

@@ -4,14 +4,16 @@ import type { Word } from '../types';
 interface Props {
   words: Word[];
   onDelete: (id: string) => void;
+  onUpdate: (id: string, updates: Partial<Word>) => void;
   onExport: () => void;
   onImport: (file: File) => void;
   onNavigateToAdd: (word: string) => void;
 }
 
-export function WordList({ words, onDelete, onExport, onImport, onNavigateToAdd }: Props) {
+export function WordList({ words, onDelete, onUpdate, onExport, onImport, onNavigateToAdd }: Props) {
   const [search, setSearch] = useState('');
   const [filterTag, setFilterTag] = useState('');
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
   const allTags = [...new Set(words.flatMap((w) => w.tags))].sort();
 
@@ -21,7 +23,8 @@ export function WordList({ words, onDelete, onExport, onImport, onNavigateToAdd 
       w.word.toLowerCase().includes(search.toLowerCase()) ||
       w.translation.toLowerCase().includes(search.toLowerCase());
     const matchesTag = !filterTag || w.tags.includes(filterTag);
-    return matchesSearch && matchesTag;
+    const matchesFav = !showFavoritesOnly || w.favorite;
+    return matchesSearch && matchesTag && matchesFav;
   });
 
   return (
@@ -57,6 +60,13 @@ export function WordList({ words, onDelete, onExport, onImport, onNavigateToAdd 
           }}
           className="search-input"
         />
+        <button
+          className={`btn-fav-filter ${showFavoritesOnly ? 'active' : ''}`}
+          onClick={() => setShowFavoritesOnly((v) => !v)}
+          title="Show favorites only"
+        >
+          {showFavoritesOnly ? '\u2605' : '\u2606'}
+        </button>
         {allTags.length > 0 && (
           <select value={filterTag} onChange={(e) => setFilterTag(e.target.value)}>
             <option value="">All tags</option>
@@ -87,6 +97,13 @@ export function WordList({ words, onDelete, onExport, onImport, onNavigateToAdd 
           {filtered.map((word) => (
             <div key={word.id} className="word-row">
               <div className="word-row-main">
+                <button
+                  className={`btn-fav ${word.favorite ? 'active' : ''}`}
+                  onClick={() => onUpdate(word.id, { favorite: !word.favorite })}
+                  title={word.favorite ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  {word.favorite ? '\u2605' : '\u2606'}
+                </button>
                 <strong className="word-text">{word.word}</strong>
                 <span className="word-row-sep">—</span>
                 <span className="word-translation">{word.translation}</span>

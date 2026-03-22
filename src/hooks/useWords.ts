@@ -17,7 +17,7 @@ export function useWords() {
     }
   }, [words, loaded]);
 
-  const addWord = useCallback((word: Omit<Word, 'id' | 'createdAt' | 'correctCount' | 'incorrectCount' | 'lastReviewedAt' | 'nextReviewAt' | 'interval'>) => {
+  const addWord = useCallback((word: Omit<Word, 'id' | 'createdAt' | 'correctCount' | 'incorrectCount' | 'lastReviewedAt' | 'nextReviewAt' | 'interval' | 'favorite'>) => {
     const newWord: Word = {
       ...word,
       id: crypto.randomUUID(),
@@ -27,6 +27,7 @@ export function useWords() {
       lastReviewedAt: null,
       nextReviewAt: Date.now(), // available for review immediately
       interval: 1,
+      favorite: false,
     };
     setWords((prev) => [...prev, newWord]);
   }, []);

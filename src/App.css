@@ -285,6 +285,49 @@
   display: flex;
   gap: 12px;
   margin-bottom: 24px;
+  align-items: center;
+}
+
+.btn-fav-filter {
+  background: var(--card-bg);
+  border: 1.5px solid var(--input-border);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: 16px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.btn-fav-filter:hover {
+  border-color: var(--primary);
+  color: #f59e0b;
+}
+
+.btn-fav-filter.active {
+  color: #f59e0b;
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.btn-fav {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0;
+  line-height: 1;
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
+.btn-fav:hover {
+  color: #f59e0b;
+}
+
+.btn-fav.active {
+  color: #f59e0b;
 }
 
 .search-input {

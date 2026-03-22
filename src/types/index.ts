@@ -11,6 +11,7 @@ export interface Word {
   lastReviewedAt: number | null;
   nextReviewAt: number;
   interval: number; // days until next review
+  favorite: boolean;
 }
 
 export type QuizMode = 'flashcard' | 'typing' | 'choice';
