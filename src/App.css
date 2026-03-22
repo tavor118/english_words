@@ -386,6 +386,31 @@
   color: #f59e0b;
 }
 
+.btn-play {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: transform 0.15s;
+}
+
+.btn-play.sm {
+  font-size: 16px;
+}
+
+.btn-play.md {
+  font-size: 22px;
+}
+
+.btn-play:hover {
+  transform: scale(1.2);
+}
+
+.btn-play.playing {
+  animation: pulse 0.8s;
+}
+
 .search-input {
   flex: 1;
   padding: 11px 14px;
@@ -679,6 +704,13 @@
   color: var(--text-muted);
   font-weight: 500;
   font-size: 15px;
+}
+
+.quiz-word-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
 .quiz-word {

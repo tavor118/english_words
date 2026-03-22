@@ -13,6 +13,7 @@ export interface Word {
   interval: number; // days until next review
   favorite: boolean;
   imageUrl: string | null;
+  audioUrl: string | null;
 }
 
 export type QuizMode = 'flashcard' | 'typing' | 'choice';

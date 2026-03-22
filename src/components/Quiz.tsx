@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import type { Word } from '../types';
 import { shuffle, updateWordAfterReview, getWordsForReview } from '../utils/spaced-repetition';
+import { PlayButton } from './PlayButton';
 
 interface Props {
   words: Word[];
@@ -89,7 +90,15 @@ export function Quiz({ words, onUpdate }: Props) {
 
       <div className="quiz-question">
         <h3>What is the translation of:</h3>
-        <span className="quiz-word">{currentWord.word}</span>
+        <div className="quiz-word-row">
+          <PlayButton
+            word={currentWord.word}
+            audioUrl={currentWord.audioUrl}
+            onAudioUrlResolved={(url) => onUpdate(currentWord.id, { audioUrl: url })}
+            size="md"
+          />
+          <span className="quiz-word">{currentWord.word}</span>
+        </div>
         {currentWord.example && (
           <p className="quiz-example">"{currentWord.example}"</p>
         )}

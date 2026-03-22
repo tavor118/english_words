@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import type { Word } from '../types';
 import { getWordsForReview, shuffle, updateWordAfterReview } from '../utils/spaced-repetition';
+import { PlayButton } from './PlayButton';
 
 interface Props {
   words: Word[];
@@ -77,6 +78,12 @@ export function Flashcard({ words, onUpdate }: Props) {
       >
         <div className="flashcard-front">
           <span className="flashcard-label">Word</span>
+          <PlayButton
+            word={currentWord.word}
+            audioUrl={currentWord.audioUrl}
+            onAudioUrlResolved={(url) => onUpdate(currentWord.id, { audioUrl: url })}
+            size="md"
+          />
           <span className="flashcard-text">{currentWord.word}</span>
           <span className="flashcard-hint">Click to flip</span>
         </div>

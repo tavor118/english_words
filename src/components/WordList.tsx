@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Word } from '../types';
+import { PlayButton } from './PlayButton';
 
 interface Props {
   words: Word[];
@@ -108,6 +109,11 @@ export function WordList({ words, onDelete, onUpdate, onExport, onImport, onNavi
                 >
                   {word.favorite ? '\u2605' : '\u2606'}
                 </button>
+                <PlayButton
+                  word={word.word}
+                  audioUrl={word.audioUrl}
+                  onAudioUrlResolved={(url) => onUpdate(word.id, { audioUrl: url })}
+                />
                 <strong className="word-text">{word.word}</strong>
                 <span className="word-row-sep">—</span>
                 <span className="word-translation">{word.translation}</span>

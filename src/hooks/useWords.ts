@@ -17,7 +17,7 @@ export function useWords() {
     }
   }, [words, loaded]);
 
-  const addWord = useCallback((word: Omit<Word, 'id' | 'createdAt' | 'correctCount' | 'incorrectCount' | 'lastReviewedAt' | 'nextReviewAt' | 'interval' | 'favorite' | 'imageUrl'> & { imageUrl?: string | null }) => {
+  const addWord = useCallback((word: Omit<Word, 'id' | 'createdAt' | 'correctCount' | 'incorrectCount' | 'lastReviewedAt' | 'nextReviewAt' | 'interval' | 'favorite' | 'imageUrl' | 'audioUrl'> & { imageUrl?: string | null; audioUrl?: string | null }) => {
     const newWord: Word = {
       ...word,
       id: crypto.randomUUID(),
@@ -29,6 +29,7 @@ export function useWords() {
       interval: 1,
       favorite: false,
       imageUrl: word.imageUrl ?? null,
+      audioUrl: word.audioUrl ?? null,
     };
     setWords((prev) => [...prev, newWord]);
   }, []);
