@@ -122,13 +122,15 @@
 }
 
 .btn-delete {
-  background: none;
-  border: none;
-  color: var(--text-muted);
+  background: var(--incorrect-bg);
+  border: 1px solid transparent;
+  color: var(--incorrect);
   cursor: pointer;
-  font-size: 18px;
-  padding: 4px 6px;
-  line-height: 1;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+  padding: 4px 10px;
+  line-height: 1.4;
   border-radius: 6px;
   transition: all 0.2s;
 }
@@ -192,6 +194,30 @@
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px solid var(--border);
+}
+
+.input-with-status {
+  position: relative;
+}
+
+.input-with-status input {
+  padding-right: 36px;
+}
+
+.input-status {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 14px;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
 }
 
 .form-group {
@@ -308,41 +334,62 @@
   font-size: 15px;
 }
 
-.words-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-}
-
-.word-card {
+.words-table {
   background: var(--card-bg);
   backdrop-filter: blur(12px);
   border: 1px solid var(--card-border);
   border-radius: var(--radius);
-  padding: 20px;
   box-shadow: var(--shadow);
-  transition: all 0.3s ease;
+  overflow: hidden;
 }
 
-.word-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-lg);
+.word-row {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s ease;
 }
 
-.word-card-header {
+.word-row:last-child {
+  border-bottom: none;
+}
+
+.word-row:hover {
+  background: var(--primary-soft);
+}
+
+.word-row-main {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.word-row-sep {
+  color: var(--text-muted);
+}
+
+.word-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.word-row-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
 }
 
 .word-text {
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text-h);
 }
 
 .word-translation {
-  margin: 6px 0;
   color: var(--text);
   font-size: 14px;
 }
@@ -351,16 +398,12 @@
   font-style: italic;
   font-size: 13px;
   color: var(--text-muted);
-  margin: 10px 0;
-  padding-left: 12px;
-  border-left: 2px solid var(--primary-soft);
 }
 
 .word-tags {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
-  margin-top: 12px;
 }
 
 .tag {

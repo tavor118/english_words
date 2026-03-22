@@ -50,6 +50,11 @@ export function WordList({ words, onDelete, onExport, onImport, onNavigateToAdd 
           placeholder="Search words..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && search.trim() && filtered.length === 0) {
+              onNavigateToAdd(search.trim());
+            }
+          }}
           className="search-input"
         />
         {allTags.length > 0 && (
@@ -66,51 +71,46 @@ export function WordList({ words, onDelete, onExport, onImport, onNavigateToAdd 
 
       {filtered.length === 0 ? (
         <div className="empty-state">
-          {words.length === 0 ? (
-            <p>No words yet. Add your first word!</p>
-          ) : (
-            <>
-              <p>No words match your search.</p>
-              {search.trim() && (
-                <button
-                  className="btn btn-primary"
-                  style={{ marginTop: 12 }}
-                  onClick={() => onNavigateToAdd(search.trim())}
-                >
-                  Add "{search.trim()}"
-                </button>
-              )}
-            </>
+          <p>{words.length === 0 ? 'No words yet. Add your first word!' : 'No words match your search.'}</p>
+          {search.trim() && (
+            <button
+              className="btn btn-primary"
+              style={{ marginTop: 12 }}
+              onClick={() => onNavigateToAdd(search.trim())}
+            >
+              Add "{search.trim()}"
+            </button>
           )}
         </div>
       ) : (
-        <div className="words-grid">
+        <div className="words-table">
           {filtered.map((word) => (
-            <div key={word.id} className="word-card">
-              <div className="word-card-header">
+            <div key={word.id} className="word-row">
+              <div className="word-row-main">
                 <strong className="word-text">{word.word}</strong>
-                <button
-                  className="btn-delete"
-                  onClick={() => onDelete(word.id)}
-                  title="Delete word"
-                >
-                  &times;
-                </button>
+                <span className="word-row-sep">—</span>
+                <span className="word-translation">{word.translation}</span>
               </div>
-              <p className="word-translation">{word.translation}</p>
-              {word.example && <p className="word-example">"{word.example}"</p>}
-              {word.tags.length > 0 && (
-                <div className="word-tags">
-                  {word.tags.map((tag) => (
-                    <span key={tag} className="tag">
-                      {tag}
-                    </span>
-                  ))}
+              <div className="word-row-meta">
+                {word.example && <span className="word-example">"{word.example}"</span>}
+                {word.tags.length > 0 && (
+                  <div className="word-tags">
+                    {word.tags.map((tag) => (
+                      <span key={tag} className="tag">{tag}</span>
+                    ))}
+                  </div>
+                )}
+                <div className="word-row-right">
+                  <span className="stat correct">{word.correctCount}</span>
+                  <span className="stat incorrect">{word.incorrectCount}</span>
+                  <button
+                    className="btn-delete"
+                    onClick={() => onDelete(word.id)}
+                    title="Delete word"
+                  >
+                    Delete
+                  </button>
                 </div>
-              )}
-              <div className="word-stats">
-                <span className="stat correct">{word.correctCount}</span>
-                <span className="stat incorrect">{word.incorrectCount}</span>
               </div>
             </div>
           ))}

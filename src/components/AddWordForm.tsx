@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import type { Word } from '../types';
+import { translateToUkrainian } from '../utils/translate';
 
 interface Props {
   words: Word[];
@@ -12,6 +13,13 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
   const [translation, setTranslation] = useState('');
   const [example, setExample] = useState('');
   const [tags, setTags] = useState('');
+  const [translating, setTranslating] = useState(false);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   const existingWord = useMemo(() => {
     if (!word.trim()) return null;
@@ -19,6 +27,26 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
       (w) => w.word.toLowerCase() === word.trim().toLowerCase()
     ) ?? null;
   }, [word, words]);
+
+  const fetchTranslation = (text: string) => {
+    setTranslating(true);
+    translateToUkrainian(text).then((result) => {
+      if (!mountedRef.current) return;
+      if (result) setTranslation(result);
+      setTranslating(false);
+    });
+  };
+
+  useEffect(() => {
+    if (initialWord.trim() && !existingWord) {
+      fetchTranslation(initialWord.trim());
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleWordBlur = () => {
+    if (!word.trim() || existingWord || translation) return;
+    fetchTranslation(word.trim());
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +78,7 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
           type="text"
           value={word}
           onChange={(e) => setWord(e.target.value)}
+          onBlur={handleWordBlur}
           placeholder="e.g. serendipity"
           required
         />
@@ -81,14 +110,17 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
         <>
           <div className="form-group">
             <label htmlFor="translation">Translation *</label>
-            <input
-              id="translation"
-              type="text"
-              value={translation}
-              onChange={(e) => setTranslation(e.target.value)}
-              placeholder="e.g. a happy accident"
-              required
-            />
+            <div className="input-with-status">
+              <input
+                id="translation"
+                type="text"
+                value={translation}
+                onChange={(e) => setTranslation(e.target.value)}
+                placeholder={translating ? 'Translating...' : 'e.g. щасливий випадок'}
+                required
+              />
+              {translating && <span className="input-status">...</span>}
+            </div>
           </div>
           <div className="form-group">
             <label htmlFor="example">Example sentence</label>

@@ -4,16 +4,18 @@ import { loadWords, saveWords } from '../utils/storage';
 
 export function useWords() {
   const [words, setWords] = useState<Word[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     setWords(loadWords());
+    setLoaded(true);
   }, []);
 
   useEffect(() => {
-    if (words.length > 0) {
+    if (loaded) {
       saveWords(words);
     }
-  }, [words]);
+  }, [words, loaded]);
 
   const addWord = useCallback((word: Omit<Word, 'id' | 'createdAt' | 'correctCount' | 'incorrectCount' | 'lastReviewedAt' | 'nextReviewAt' | 'interval'>) => {
     const newWord: Word = {
