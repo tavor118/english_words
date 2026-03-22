@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import type { Word } from '../types';
 import { PlayButton } from './PlayButton';
+import { checkWord } from '../utils/spellcheck';
 
 interface Props {
   words: Word[];
@@ -15,6 +16,38 @@ export function WordList({ words, onDelete, onUpdate, onExport, onImport, onNavi
   const [search, setSearch] = useState('');
   const [filterTag, setFilterTag] = useState('');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [spellSuggestions, setSpellSuggestions] = useState<string[]>([]);
+  const [spellValid, setSpellValid] = useState(false);
+  const [spellInvalid, setSpellInvalid] = useState(false);
+  const [spellChecking, setSpellChecking] = useState(false);
+  const spellTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  useEffect(() => {
+    return () => { if (spellTimerRef.current) clearTimeout(spellTimerRef.current); };
+  }, []);
+
+  const debouncedSpellCheck = useCallback((text: string) => {
+    if (spellTimerRef.current) clearTimeout(spellTimerRef.current);
+    setSpellValid(false);
+    setSpellInvalid(false);
+    setSpellSuggestions([]);
+    if (!text.trim()) {
+      setSpellChecking(false);
+      return;
+    }
+    setSpellChecking(true);
+    spellTimerRef.current = setTimeout(() => {
+      checkWord(text.trim()).then((result) => {
+        setSpellChecking(false);
+        if (result.valid) {
+          setSpellValid(true);
+        } else {
+          setSpellInvalid(true);
+          setSpellSuggestions(result.suggestions);
+        }
+      });
+    }, 500);
+  }, []);
 
   const allTags = [...new Set(words.flatMap((w) => w.tags))].sort();
 
@@ -49,18 +82,23 @@ export function WordList({ words, onDelete, onUpdate, onExport, onImport, onNavi
       </div>
 
       <div className="filters">
-        <input
-          type="text"
-          placeholder="Search words..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && search.trim() && filtered.length === 0) {
-              onNavigateToAdd(search.trim());
-            }
-          }}
-          className="search-input"
-        />
+        <div className="input-with-status search-input-wrapper">
+          <input
+            type="text"
+            placeholder="Search words..."
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); debouncedSpellCheck(e.target.value); }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && search.trim() && filtered.length === 0) {
+                onNavigateToAdd(search.trim());
+              }
+            }}
+            className="search-input"
+          />
+          {spellChecking && <span className="input-status">...</span>}
+          {spellValid && <span className="input-status valid">{'\u2713'}</span>}
+          {spellInvalid && <span className="input-status invalid">{'\u2717'}</span>}
+        </div>
         <button
           className={`btn-fav-filter ${showFavoritesOnly ? 'active' : ''}`}
           onClick={() => setShowFavoritesOnly((v) => !v)}
@@ -83,10 +121,26 @@ export function WordList({ words, onDelete, onUpdate, onExport, onImport, onNavi
       {filtered.length === 0 ? (
         <div className="empty-state">
           <p>{words.length === 0 ? 'No words yet. Add your first word!' : 'No words match your search.'}</p>
+          {search.trim() && spellInvalid && spellSuggestions.length > 0 && (
+            <div className="spell-error" style={{ marginBottom: 12 }}>
+              <span>Word not found in dictionary.</span>
+              <div className="spell-suggestions">
+                Did you mean:{' '}
+                {spellSuggestions.map((s, i) => (
+                  <button
+                    key={s}
+                    className="spell-suggestion"
+                    onClick={() => { setSearch(s); debouncedSpellCheck(s); }}
+                  >
+                    {s}{i < spellSuggestions.length - 1 ? ',' : ''}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           {search.trim() && (
             <button
               className="btn btn-primary"
-              style={{ marginTop: 12 }}
               onClick={() => onNavigateToAdd(search.trim())}
             >
               Add "{search.trim()}"
@@ -97,8 +151,10 @@ export function WordList({ words, onDelete, onUpdate, onExport, onImport, onNavi
         <div className="words-table">
           {filtered.map((word) => (
             <div key={word.id} className="word-row">
-              {word.imageUrl && (
+              {word.imageUrl ? (
                 <img src={word.imageUrl} alt={word.word} className="word-row-image" />
+              ) : (
+                <div className="word-row-image placeholder">{word.word.charAt(0).toUpperCase()}</div>
               )}
               <div className="word-row-content">
               <div className="word-row-main">
