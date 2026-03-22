@@ -10,6 +10,7 @@ import './App.css';
 
 function App() {
   const [view, setView] = useState<View>('list');
+  const [prefillWord, setPrefillWord] = useState('');
   const { words, addWord, updateWord, deleteWord, replaceWords } = useWords();
 
   const handleImport = async (file: File) => {
@@ -34,7 +35,7 @@ function App() {
           </button>
           <button
             className={`nav-btn ${view === 'add' ? 'active' : ''}`}
-            onClick={() => setView('add')}
+            onClick={() => { setPrefillWord(''); setView('add'); }}
           >
             Add
           </button>
@@ -60,9 +61,10 @@ function App() {
             onDelete={deleteWord}
             onExport={() => exportWords(words)}
             onImport={handleImport}
+            onNavigateToAdd={(word) => { setPrefillWord(word); setView('add'); }}
           />
         )}
-        {view === 'add' && <AddWordForm onAdd={addWord} />}
+        {view === 'add' && <AddWordForm key={prefillWord} words={words} initialWord={prefillWord} onAdd={(w) => { addWord(w); setPrefillWord(''); }} />}
         {view === 'flashcard' && <Flashcard key={Date.now()} words={words} onUpdate={updateWord} />}
         {view === 'quiz' && <Quiz key={Date.now()} words={words} onUpdate={updateWord} />}
       </main>

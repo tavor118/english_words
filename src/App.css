@@ -156,6 +156,44 @@
   font-weight: 600;
 }
 
+/* Existing word notice */
+.existing-word-notice {
+  margin-top: 4px;
+}
+
+.existing-word-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 10px;
+}
+
+.existing-word-card {
+  padding: 16px;
+  background: var(--primary-soft);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+}
+
+.existing-word-card .word-text {
+  font-size: 16px;
+}
+
+.existing-word-card .word-translation {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.existing-word-card .word-example {
+  margin: 8px 0;
+}
+
+.existing-word-card .word-stats {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
 .form-group {
   margin-bottom: 20px;
 }

@@ -81,6 +81,21 @@ The app deploys automatically on every push to `main` via GitHub Actions.
 
 The site will be available at `https://<your-username>.github.io/english_words/`.
 
+## Spaced Repetition
+
+The app uses a simplified spaced repetition algorithm to prioritize words you struggle with:
+
+- Each new word starts with an **interval of 1 day** and is immediately available for review
+- **Correct answer** — the interval is multiplied by **2.5x** (1d → 2.5d → 6.25d → 15.6d → ...), capped at 365 days
+- **Incorrect answer** — the interval resets to **1 day**
+- Flashcard and Quiz modes prioritize words whose **next review date** has passed, sorted by most overdue first
+- If no words are due for review, all words are included in the session
+
+Each word tracks:
+- `correctCount` / `incorrectCount` — lifetime answer stats
+- `interval` — current spacing in days
+- `nextReviewAt` — timestamp when the word becomes due again
+
 ## Data Storage
 
 All words are stored in the browser's `localStorage` under the key `english-words`. To avoid data loss:

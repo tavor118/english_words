@@ -6,9 +6,10 @@ interface Props {
   onDelete: (id: string) => void;
   onExport: () => void;
   onImport: (file: File) => void;
+  onNavigateToAdd: (word: string) => void;
 }
 
-export function WordList({ words, onDelete, onExport, onImport }: Props) {
+export function WordList({ words, onDelete, onExport, onImport, onNavigateToAdd }: Props) {
   const [search, setSearch] = useState('');
   const [filterTag, setFilterTag] = useState('');
 
@@ -64,9 +65,24 @@ export function WordList({ words, onDelete, onExport, onImport }: Props) {
       </div>
 
       {filtered.length === 0 ? (
-        <p className="empty-state">
-          {words.length === 0 ? 'No words yet. Add your first word!' : 'No words match your search.'}
-        </p>
+        <div className="empty-state">
+          {words.length === 0 ? (
+            <p>No words yet. Add your first word!</p>
+          ) : (
+            <>
+              <p>No words match your search.</p>
+              {search.trim() && (
+                <button
+                  className="btn btn-primary"
+                  style={{ marginTop: 12 }}
+                  onClick={() => onNavigateToAdd(search.trim())}
+                >
+                  Add "{search.trim()}"
+                </button>
+              )}
+            </>
+          )}
+        </div>
       ) : (
         <div className="words-grid">
           {filtered.map((word) => (
