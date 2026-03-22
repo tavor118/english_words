@@ -1,5 +1,7 @@
 # English Words
 
+**Live:** https://tavor118.github.io/english_words/
+
 A personal app for studying English vocabulary. Add words with translations, practice with flashcards and quizzes, and track your progress — all in the browser with no backend required.
 
 Data is stored in **localStorage**, and the app is hosted on **GitHub Pages**.
