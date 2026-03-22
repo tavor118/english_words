@@ -1,11 +1,12 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import type { Word } from '../types';
 import { translateToUkrainian } from '../utils/translate';
+import { findImage } from '../utils/image-search';
 
 interface Props {
   words: Word[];
   initialWord?: string;
-  onAdd: (word: { word: string; translation: string; example: string; tags: string[] }) => void;
+  onAdd: (word: { word: string; translation: string; example: string; tags: string[]; imageUrl?: string | null }) => void;
 }
 
 export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
@@ -13,7 +14,9 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
   const [translation, setTranslation] = useState('');
   const [example, setExample] = useState('');
   const [tags, setTags] = useState('');
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [translating, setTranslating] = useState(false);
+  const [loadingImage, setLoadingImage] = useState(false);
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -28,24 +31,47 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
     ) ?? null;
   }, [word, words]);
 
-  const fetchTranslation = (text: string) => {
+  const fetchWordData = (text: string) => {
     setTranslating(true);
+    setLoadingImage(true);
+
     translateToUkrainian(text).then((result) => {
       if (!mountedRef.current) return;
       if (result) setTranslation(result);
       setTranslating(false);
     });
+
+    findImage(text).then((url) => {
+      if (!mountedRef.current) return;
+      setImageUrl(url);
+      setLoadingImage(false);
+    });
   };
 
   useEffect(() => {
     if (initialWord.trim() && !existingWord) {
-      fetchTranslation(initialWord.trim());
+      fetchWordData(initialWord.trim());
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleWordBlur = () => {
-    if (!word.trim() || existingWord || translation) return;
-    fetchTranslation(word.trim());
+    if (!word.trim() || existingWord) return;
+    if (!translation) {
+      setTranslating(true);
+      translateToUkrainian(word.trim()).then((result) => {
+        if (!mountedRef.current) return;
+        if (result) setTranslation(result);
+        setTranslating(false);
+      });
+    }
+    if (!imageUrl) {
+      setLoadingImage(true);
+      findImage(word.trim()).then((url) => {
+        if (!mountedRef.current) return;
+        setImageUrl(url);
+        setLoadingImage(false);
+      });
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -60,12 +86,14 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
         .split(',')
         .map((t) => t.trim())
         .filter(Boolean),
+      imageUrl,
     });
 
     setWord('');
     setTranslation('');
     setExample('');
     setTags('');
+    setImageUrl(null);
   };
 
   return (
@@ -88,6 +116,9 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
         <div className="existing-word-notice">
           <div className="existing-word-label">Already in your vocabulary</div>
           <div className="existing-word-card">
+            {existingWord.imageUrl && (
+              <img src={existingWord.imageUrl} alt={existingWord.word} className="word-image" />
+            )}
             <strong className="word-text">{existingWord.word}</strong>
             <p className="word-translation">{existingWord.translation}</p>
             {existingWord.example && (
@@ -108,6 +139,34 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
         </div>
       ) : (
         <>
+          {imageUrl && (
+            <div className="form-image-preview">
+              <div className="image-preview-wrapper">
+                <img src={imageUrl} alt={word} className="word-image-preview" />
+                <button
+                  type="button"
+                  className="btn-remove-image"
+                  onClick={() => setImageUrl(null)}
+                  title="Remove image"
+                >
+                  &times;
+                </button>
+              </div>
+            </div>
+          )}
+          <div className="form-group">
+            <label htmlFor="imageUrl">Image URL</label>
+            <div className="input-with-status">
+              <input
+                id="imageUrl"
+                type="url"
+                value={imageUrl ?? ''}
+                onChange={(e) => setImageUrl(e.target.value || null)}
+                placeholder={loadingImage ? 'Searching...' : 'Paste image URL or leave for auto-search'}
+              />
+              {loadingImage && <span className="input-status">...</span>}
+            </div>
+          </div>
           <div className="form-group">
             <label htmlFor="translation">Translation *</label>
             <div className="input-with-status">

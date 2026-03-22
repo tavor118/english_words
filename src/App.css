@@ -196,6 +196,62 @@
   border-top: 1px solid var(--border);
 }
 
+/* Image preview in form */
+.form-image-preview {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.image-loading {
+  padding: 24px;
+  color: var(--text-muted);
+  font-size: 13px;
+  animation: pulse 1s infinite;
+}
+
+.image-preview-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.word-image-preview {
+  max-width: 100%;
+  max-height: 180px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.btn-remove-image {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-remove-image:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+/* Word image in cards/list */
+.word-image {
+  width: 100%;
+  max-height: 120px;
+  object-fit: cover;
+  border-radius: var(--radius-xs, 6px);
+  margin-bottom: 8px;
+}
+
 .input-with-status {
   position: relative;
 }
@@ -387,9 +443,25 @@
 }
 
 .word-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
   padding: 14px 20px;
   border-bottom: 1px solid var(--border);
   transition: background 0.15s ease;
+}
+
+.word-row-image {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.word-row-content {
+  flex: 1;
+  min-width: 0;
 }
 
 .word-row:last-child {
@@ -568,6 +640,12 @@
 .flashcard-hint {
   font-size: 12px;
   color: var(--text-muted);
+}
+
+.flashcard-image {
+  max-height: 80px;
+  border-radius: var(--radius-xs, 6px);
+  object-fit: cover;
 }
 
 .flashcard-example {

@@ -83,6 +83,9 @@ export function Flashcard({ words, onUpdate }: Props) {
         <div className="flashcard-back">
           <span className="flashcard-label">Translation</span>
           <span className="flashcard-text">{currentWord.translation}</span>
+          {currentWord.imageUrl && (
+            <img src={currentWord.imageUrl} alt={currentWord.word} className="flashcard-image" />
+          )}
           {currentWord.example && (
             <span className="flashcard-example">"{currentWord.example}"</span>
           )}

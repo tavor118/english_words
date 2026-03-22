@@ -25,7 +25,7 @@ export function WordList({ words, onDelete, onUpdate, onExport, onImport, onNavi
     const matchesTag = !filterTag || w.tags.includes(filterTag);
     const matchesFav = !showFavoritesOnly || w.favorite;
     return matchesSearch && matchesTag && matchesFav;
-  });
+  }).sort((a, b) => b.createdAt - a.createdAt);
 
   return (
     <div className="word-list">
@@ -96,6 +96,10 @@ export function WordList({ words, onDelete, onUpdate, onExport, onImport, onNavi
         <div className="words-table">
           {filtered.map((word) => (
             <div key={word.id} className="word-row">
+              {word.imageUrl && (
+                <img src={word.imageUrl} alt={word.word} className="word-row-image" />
+              )}
+              <div className="word-row-content">
               <div className="word-row-main">
                 <button
                   className={`btn-fav ${word.favorite ? 'active' : ''}`}
@@ -128,6 +132,7 @@ export function WordList({ words, onDelete, onUpdate, onExport, onImport, onNavi
                     Delete
                   </button>
                 </div>
+              </div>
               </div>
             </div>
           ))}
