@@ -257,12 +257,12 @@
 }
 
 .input-with-status input {
-  padding-right: 36px;
+  padding-left: 36px;
 }
 
 .input-status {
   position: absolute;
-  right: 12px;
+  left: 12px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--primary);
