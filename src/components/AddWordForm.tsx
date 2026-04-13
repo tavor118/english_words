@@ -36,43 +36,66 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
     return words.find((w) => w.word.toLowerCase() === trimmed) ?? null;
   }, [word, words]);
 
+  const fetchTranslation = (text: string) => {
+    setTranslating(true);
+    translateToUkrainian(text).then((result) => {
+      if (!mountedRef.current) return;
+      if (result) setTranslation(result);
+      setTranslating(false);
+    });
+  };
+
+  const fetchImage = (text: string) => {
+    setLoadingImage(true);
+    findImage(text).then((url) => {
+      if (!mountedRef.current) return;
+      setImageUrl(url);
+      setLoadingImage(false);
+    });
+  };
+
   useEffect(() => {
     if (shouldAutoFetch) {
-      translateToUkrainian(initialWord.trim()).then((result) => {
+      const trimmed = initialWord.trim();
+      // State already initialized as loading — only fire async fetches
+      translateToUkrainian(trimmed).then((result) => {
         if (!mountedRef.current) return;
         if (result) setTranslation(result);
         setTranslating(false);
       });
-
-      findImage(initialWord.trim()).then((url) => {
+      findImage(trimmed).then((url) => {
         if (!mountedRef.current) return;
         setImageUrl(url);
         setLoadingImage(false);
       });
-
-      spell.check(initialWord.trim());
+      spell.check(trimmed);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleWordBlur = () => {
-    if (!word.trim() || existingWord) return;
+  // Debounced auto-fetch: after user stops typing, fetch translation & image
+  const fetchTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const debouncedFetchWordData = (text: string) => {
+    if (fetchTimerRef.current) clearTimeout(fetchTimerRef.current);
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    fetchTimerRef.current = setTimeout(() => {
+      if (words.some((w) => w.word.toLowerCase() === trimmed.toLowerCase())) return;
+      fetchTranslation(trimmed);
+      fetchImage(trimmed);
+    }, 1200);
+  };
 
-    if (!translation) {
-      setTranslating(true);
-      translateToUkrainian(word.trim()).then((result) => {
-        if (!mountedRef.current) return;
-        if (result) setTranslation(result);
-        setTranslating(false);
-      });
-    }
-    if (!imageUrl) {
-      setLoadingImage(true);
-      findImage(word.trim()).then((url) => {
-        if (!mountedRef.current) return;
-        setImageUrl(url);
-        setLoadingImage(false);
-      });
-    }
+  useEffect(() => {
+    return () => { if (fetchTimerRef.current) clearTimeout(fetchTimerRef.current); };
+  }, []);
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setWord(suggestion);
+    spell.check(suggestion);
+    setTranslation('');
+    setImageUrl(null);
+    fetchTranslation(suggestion);
+    fetchImage(suggestion);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -105,8 +128,7 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
             type="text"
             className={`${shared.input} ${s.formGroupInput}`}
             value={word}
-            onChange={(e) => { setWord(e.target.value); spell.check(e.target.value); }}
-            onBlur={handleWordBlur}
+            onChange={(e) => { setWord(e.target.value); spell.check(e.target.value); debouncedFetchWordData(e.target.value); }}
             placeholder="e.g. serendipity"
             required
           />
@@ -125,12 +147,7 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
                     key={sug}
                     type="button"
                     className={shared.spellSuggestion}
-                    onClick={() => {
-                      setWord(sug);
-                      spell.reset();
-                      setTranslation('');
-                      setImageUrl(null);
-                    }}
+                    onClick={() => handleSuggestionClick(sug)}
                   >
                     {sug}{i < spell.suggestions.length - 1 ? ',' : ''}
                   </button>
