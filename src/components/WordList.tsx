@@ -1,7 +1,7 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import type { Word } from '../types';
 import { PlayButton } from './PlayButton';
-import { checkWord } from '../utils/spellcheck';
+import { useSpellCheck } from '../hooks/useSpellCheck';
 
 interface Props {
   words: Word[];
@@ -16,50 +16,26 @@ export function WordList({ words, onDelete, onUpdate, onExport, onImport, onNavi
   const [search, setSearch] = useState('');
   const [filterTag, setFilterTag] = useState('');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
-  const [spellSuggestions, setSpellSuggestions] = useState<string[]>([]);
-  const [spellValid, setSpellValid] = useState(false);
-  const [spellInvalid, setSpellInvalid] = useState(false);
-  const [spellChecking, setSpellChecking] = useState(false);
-  const spellTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const spell = useSpellCheck();
 
-  useEffect(() => {
-    return () => { if (spellTimerRef.current) clearTimeout(spellTimerRef.current); };
-  }, []);
+  const allTags = useMemo(
+    () => [...new Set(words.flatMap((w) => w.tags))].sort(),
+    [words]
+  );
 
-  const debouncedSpellCheck = useCallback((text: string) => {
-    if (spellTimerRef.current) clearTimeout(spellTimerRef.current);
-    setSpellValid(false);
-    setSpellInvalid(false);
-    setSpellSuggestions([]);
-    if (!text.trim()) {
-      setSpellChecking(false);
-      return;
-    }
-    setSpellChecking(true);
-    spellTimerRef.current = setTimeout(() => {
-      checkWord(text.trim()).then((result) => {
-        setSpellChecking(false);
-        if (result.valid) {
-          setSpellValid(true);
-        } else {
-          setSpellInvalid(true);
-          setSpellSuggestions(result.suggestions);
-        }
-      });
-    }, 500);
-  }, []);
-
-  const allTags = [...new Set(words.flatMap((w) => w.tags))].sort();
-
-  const filtered = words.filter((w) => {
-    const matchesSearch =
-      !search ||
-      w.word.toLowerCase().includes(search.toLowerCase()) ||
-      w.translation.toLowerCase().includes(search.toLowerCase());
-    const matchesTag = !filterTag || w.tags.includes(filterTag);
-    const matchesFav = !showFavoritesOnly || w.favorite;
-    return matchesSearch && matchesTag && matchesFav;
-  }).sort((a, b) => b.createdAt - a.createdAt);
+  const filtered = useMemo(
+    () => words.filter((w) => {
+      const searchLower = search.toLowerCase();
+      const matchesSearch =
+        !search ||
+        w.word.toLowerCase().includes(searchLower) ||
+        w.translation.toLowerCase().includes(searchLower);
+      const matchesTag = !filterTag || w.tags.includes(filterTag);
+      const matchesFav = !showFavoritesOnly || w.favorite;
+      return matchesSearch && matchesTag && matchesFav;
+    }).sort((a, b) => b.createdAt - a.createdAt),
+    [words, search, filterTag, showFavoritesOnly]
+  );
 
   return (
     <div className="word-list">
@@ -87,7 +63,7 @@ export function WordList({ words, onDelete, onUpdate, onExport, onImport, onNavi
             type="text"
             placeholder="Search words..."
             value={search}
-            onChange={(e) => { setSearch(e.target.value); debouncedSpellCheck(e.target.value); }}
+            onChange={(e) => { setSearch(e.target.value); spell.check(e.target.value); }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && search.trim() && filtered.length === 0) {
                 onNavigateToAdd(search.trim());
@@ -95,9 +71,9 @@ export function WordList({ words, onDelete, onUpdate, onExport, onImport, onNavi
             }}
             className="search-input"
           />
-          {spellChecking && <span className="input-status">...</span>}
-          {spellValid && <span className="input-status valid">{'\u2713'}</span>}
-          {spellInvalid && <span className="input-status invalid">{'\u2717'}</span>}
+          {spell.checking && <span className="input-status">...</span>}
+          {spell.valid && <span className="input-status valid">{'\u2713'}</span>}
+          {spell.invalid && <span className="input-status invalid">{'\u2717'}</span>}
         </div>
         <button
           className={`btn-fav-filter ${showFavoritesOnly ? 'active' : ''}`}
@@ -121,18 +97,18 @@ export function WordList({ words, onDelete, onUpdate, onExport, onImport, onNavi
       {filtered.length === 0 ? (
         <div className="empty-state">
           <p>{words.length === 0 ? 'No words yet. Add your first word!' : 'No words match your search.'}</p>
-          {search.trim() && spellInvalid && spellSuggestions.length > 0 && (
+          {search.trim() && spell.invalid && spell.suggestions.length > 0 && (
             <div className="spell-error" style={{ marginBottom: 12 }}>
               <span>Word not found in dictionary.</span>
               <div className="spell-suggestions">
                 Did you mean:{' '}
-                {spellSuggestions.map((s, i) => (
+                {spell.suggestions.map((s, i) => (
                   <button
                     key={s}
                     className="spell-suggestion"
-                    onClick={() => { setSearch(s); debouncedSpellCheck(s); }}
+                    onClick={() => { setSearch(s); spell.check(s); }}
                   >
-                    {s}{i < spellSuggestions.length - 1 ? ',' : ''}
+                    {s}{i < spell.suggestions.length - 1 ? ',' : ''}
                   </button>
                 ))}
               </div>
@@ -157,44 +133,44 @@ export function WordList({ words, onDelete, onUpdate, onExport, onImport, onNavi
                 <div className="word-row-image placeholder">{word.word.charAt(0).toUpperCase()}</div>
               )}
               <div className="word-row-content">
-              <div className="word-row-main">
-                <button
-                  className={`btn-fav ${word.favorite ? 'active' : ''}`}
-                  onClick={() => onUpdate(word.id, { favorite: !word.favorite })}
-                  title={word.favorite ? 'Remove from favorites' : 'Add to favorites'}
-                >
-                  {word.favorite ? '\u2605' : '\u2606'}
-                </button>
-                <PlayButton
-                  word={word.word}
-                  audioUrl={word.audioUrl}
-                  onAudioUrlResolved={(url) => onUpdate(word.id, { audioUrl: url })}
-                />
-                <strong className="word-text">{word.word}</strong>
-                <span className="word-row-sep">—</span>
-                <span className="word-translation">{word.translation}</span>
-              </div>
-              <div className="word-row-meta">
-                {word.example && <span className="word-example">"{word.example}"</span>}
-                {word.tags.length > 0 && (
-                  <div className="word-tags">
-                    {word.tags.map((tag) => (
-                      <span key={tag} className="tag">{tag}</span>
-                    ))}
-                  </div>
-                )}
-                <div className="word-row-right">
-                  <span className="stat correct">{word.correctCount}</span>
-                  <span className="stat incorrect">{word.incorrectCount}</span>
+                <div className="word-row-main">
                   <button
-                    className="btn-delete"
-                    onClick={() => onDelete(word.id)}
-                    title="Delete word"
+                    className={`btn-fav ${word.favorite ? 'active' : ''}`}
+                    onClick={() => onUpdate(word.id, { favorite: !word.favorite })}
+                    title={word.favorite ? 'Remove from favorites' : 'Add to favorites'}
                   >
-                    Delete
+                    {word.favorite ? '\u2605' : '\u2606'}
                   </button>
+                  <PlayButton
+                    word={word.word}
+                    audioUrl={word.audioUrl}
+                    onAudioUrlResolved={(url) => onUpdate(word.id, { audioUrl: url })}
+                  />
+                  <strong className="word-text">{word.word}</strong>
+                  <span className="word-row-sep">—</span>
+                  <span className="word-translation">{word.translation}</span>
                 </div>
-              </div>
+                <div className="word-row-meta">
+                  {word.example && <span className="word-example">"{word.example}"</span>}
+                  {word.tags.length > 0 && (
+                    <div className="word-tags">
+                      {word.tags.map((tag) => (
+                        <span key={tag} className="tag">{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                  <div className="word-row-right">
+                    <span className="stat correct">{word.correctCount}</span>
+                    <span className="stat incorrect">{word.incorrectCount}</span>
+                    <button
+                      className="btn-delete"
+                      onClick={() => onDelete(word.id)}
+                      title="Delete word"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           ))}

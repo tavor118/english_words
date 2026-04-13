@@ -1,8 +1,9 @@
-let audioCache: Record<string, string> = {};
+const audioCache = new Map<string, string>();
 
 export async function getAudioUrl(word: string): Promise<string | null> {
   const key = word.toLowerCase();
-  if (audioCache[key]) return audioCache[key];
+  const cached = audioCache.get(key);
+  if (cached) return cached;
 
   try {
     const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(key)}`);
@@ -12,7 +13,7 @@ export async function getAudioUrl(word: string): Promise<string | null> {
     for (const entry of data) {
       for (const phonetic of entry.phonetics ?? []) {
         if (phonetic.audio) {
-          audioCache[key] = phonetic.audio;
+          audioCache.set(key, phonetic.audio);
           return phonetic.audio;
         }
       }
@@ -24,8 +25,7 @@ export async function getAudioUrl(word: string): Promise<string | null> {
 }
 
 export function playAudio(url: string): void {
-  const audio = new Audio(url);
-  audio.play();
+  new Audio(url).play();
 }
 
 export function speakWord(word: string): void {

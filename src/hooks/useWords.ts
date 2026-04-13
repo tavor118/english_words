@@ -1,35 +1,39 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Word } from '../types';
 import { loadWords, saveWords } from '../utils/storage';
 
+export type NewWordInput = Pick<Word, 'word' | 'translation' | 'example' | 'tags'> & {
+  imageUrl?: string | null;
+  audioUrl?: string | null;
+};
+
 export function useWords() {
-  const [words, setWords] = useState<Word[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  const [words, setWords] = useState<Word[]>(() => loadWords());
+  const initialLoadDone = useRef(false);
 
   useEffect(() => {
-    setWords(loadWords());
-    setLoaded(true);
+    initialLoadDone.current = true;
   }, []);
 
   useEffect(() => {
-    if (loaded) {
+    if (initialLoadDone.current) {
       saveWords(words);
     }
-  }, [words, loaded]);
+  }, [words]);
 
-  const addWord = useCallback((word: Omit<Word, 'id' | 'createdAt' | 'correctCount' | 'incorrectCount' | 'lastReviewedAt' | 'nextReviewAt' | 'interval' | 'favorite' | 'imageUrl' | 'audioUrl'> & { imageUrl?: string | null; audioUrl?: string | null }) => {
+  const addWord = useCallback((input: NewWordInput) => {
     const newWord: Word = {
-      ...word,
+      ...input,
       id: crypto.randomUUID(),
       createdAt: Date.now(),
       correctCount: 0,
       incorrectCount: 0,
       lastReviewedAt: null,
-      nextReviewAt: Date.now(), // available for review immediately
+      nextReviewAt: Date.now(),
       interval: 1,
       favorite: false,
-      imageUrl: word.imageUrl ?? null,
-      audioUrl: word.audioUrl ?? null,
+      imageUrl: input.imageUrl ?? null,
+      audioUrl: input.audioUrl ?? null,
     };
     setWords((prev) => [...prev, newWord]);
   }, []);

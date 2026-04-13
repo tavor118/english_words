@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import type { View } from './types';
 import { useWords } from './hooks/useWords';
 import { AddWordForm } from './components/AddWordForm';
@@ -11,6 +11,8 @@ import './App.css';
 function App() {
   const [view, setView] = useState<View>('list');
   const [prefillWord, setPrefillWord] = useState('');
+  const [sessionKey, setSessionKey] = useState(0);
+  const stableId = useId();
   const { words, addWord, updateWord, deleteWord, replaceWords } = useWords();
 
   const handleImport = async (file: File) => {
@@ -41,13 +43,13 @@ function App() {
           </button>
           <button
             className={`nav-btn ${view === 'flashcard' ? 'active' : ''}`}
-            onClick={() => setView('flashcard')}
+            onClick={() => { setSessionKey((k) => k + 1); setView('flashcard'); }}
           >
             Flashcards
           </button>
           <button
             className={`nav-btn ${view === 'quiz' ? 'active' : ''}`}
-            onClick={() => setView('quiz')}
+            onClick={() => { setSessionKey((k) => k + 1); setView('quiz'); }}
           >
             Quiz
           </button>
@@ -66,8 +68,8 @@ function App() {
           />
         )}
         {view === 'add' && <AddWordForm key={prefillWord} words={words} initialWord={prefillWord} onAdd={(w) => { addWord(w); setPrefillWord(''); }} />}
-        {view === 'flashcard' && <Flashcard key={Date.now()} words={words} onUpdate={updateWord} />}
-        {view === 'quiz' && <Quiz key={Date.now()} words={words} onUpdate={updateWord} />}
+        {view === 'flashcard' && <Flashcard key={`${stableId}-fc-${sessionKey}`} words={words} onUpdate={updateWord} />}
+        {view === 'quiz' && <Quiz key={`${stableId}-qz-${sessionKey}`} words={words} onUpdate={updateWord} />}
       </main>
     </div>
   );

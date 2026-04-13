@@ -17,6 +17,8 @@
   --correct-bg: rgba(16, 185, 129, 0.1);
   --incorrect: #f43f5e;
   --incorrect-bg: rgba(244, 63, 94, 0.1);
+  --favorite: #f59e0b;
+  --favorite-bg: rgba(245, 158, 11, 0.08);
   --tag-bg: rgba(99, 102, 241, 0.08);
   --tag-text: #6366f1;
   --input-bg: rgba(255, 255, 255, 0.8);
@@ -27,6 +29,7 @@
   --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
   --radius: 16px;
   --radius-sm: 10px;
+  --radius-xs: 6px;
 
   font: 15px/1.6 'Inter', system-ui, -apple-system, sans-serif;
   color-scheme: light dark;
@@ -54,6 +57,7 @@
     --correct-bg: rgba(52, 211, 153, 0.12);
     --incorrect: #fb7185;
     --incorrect-bg: rgba(251, 113, 133, 0.12);
+    --favorite-bg: rgba(245, 158, 11, 0.12);
     --tag-bg: rgba(129, 140, 248, 0.12);
     --tag-text: #a5b4fc;
     --input-bg: rgba(30, 41, 59, 0.8);

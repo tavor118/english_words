@@ -1,13 +1,14 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import type { Word } from '../types';
+import type { NewWordInput } from '../hooks/useWords';
+import { useSpellCheck } from '../hooks/useSpellCheck';
 import { translateToUkrainian } from '../utils/translate';
 import { findImage } from '../utils/image-search';
-import { checkWord } from '../utils/spellcheck';
 
 interface Props {
   words: Word[];
   initialWord?: string;
-  onAdd: (word: { word: string; translation: string; example: string; tags: string[]; imageUrl?: string | null }) => void;
+  onAdd: (word: NewWordInput) => void;
 }
 
 export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
@@ -16,74 +17,38 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
   const [example, setExample] = useState('');
   const [tags, setTags] = useState('');
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [translating, setTranslating] = useState(false);
-  const [loadingImage, setLoadingImage] = useState(false);
-  const [spellError, setSpellError] = useState<string[] | null>(null);
-  const [spellValid, setSpellValid] = useState(false);
-  const [checking, setChecking] = useState(false);
+  const shouldAutoFetch = initialWord.trim() && !words.some((w) => w.word.toLowerCase() === initialWord.trim().toLowerCase());
+  const [translating, setTranslating] = useState(!!shouldAutoFetch);
+  const [loadingImage, setLoadingImage] = useState(!!shouldAutoFetch);
   const mountedRef = useRef(true);
-  const spellTimerRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const spell = useSpellCheck();
 
   useEffect(() => {
     mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-      if (spellTimerRef.current) clearTimeout(spellTimerRef.current);
-    };
+    return () => { mountedRef.current = false; };
   }, []);
 
   const existingWord = useMemo(() => {
-    if (!word.trim()) return null;
-    return words.find(
-      (w) => w.word.toLowerCase() === word.trim().toLowerCase()
-    ) ?? null;
+    const trimmed = word.trim().toLowerCase();
+    if (!trimmed) return null;
+    return words.find((w) => w.word.toLowerCase() === trimmed) ?? null;
   }, [word, words]);
 
-  const debouncedSpellCheck = useCallback((text: string) => {
-    if (spellTimerRef.current) clearTimeout(spellTimerRef.current);
-    if (!text.trim()) {
-      setChecking(false);
-      setSpellError(null);
-      setSpellValid(false);
-      return;
-    }
-    setChecking(true);
-    setSpellError(null);
-    setSpellValid(false);
-    spellTimerRef.current = setTimeout(() => {
-      checkWord(text.trim()).then((result) => {
-        if (!mountedRef.current) return;
-        setChecking(false);
-        if (result.valid) {
-          setSpellValid(true);
-        } else {
-          setSpellError(result.suggestions);
-        }
-      });
-    }, 500);
-  }, []);
-
-  const fetchWordData = (text: string) => {
-    setTranslating(true);
-    setLoadingImage(true);
-
-    translateToUkrainian(text).then((result) => {
-      if (!mountedRef.current) return;
-      if (result) setTranslation(result);
-      setTranslating(false);
-    });
-
-    findImage(text).then((url) => {
-      if (!mountedRef.current) return;
-      setImageUrl(url);
-      setLoadingImage(false);
-    });
-  };
-
   useEffect(() => {
-    if (initialWord.trim() && !existingWord) {
-      fetchWordData(initialWord.trim());
-      debouncedSpellCheck(initialWord.trim());
+    if (shouldAutoFetch) {
+      translateToUkrainian(initialWord.trim()).then((result) => {
+        if (!mountedRef.current) return;
+        if (result) setTranslation(result);
+        setTranslating(false);
+      });
+
+      findImage(initialWord.trim()).then((url) => {
+        if (!mountedRef.current) return;
+        setImageUrl(url);
+        setLoadingImage(false);
+      });
+
+      spell.check(initialWord.trim());
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -116,10 +81,7 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
       word: word.trim(),
       translation: translation.trim(),
       example: example.trim(),
-      tags: tags
-        .split(',')
-        .map((t) => t.trim())
-        .filter(Boolean),
+      tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
       imageUrl,
     });
 
@@ -140,34 +102,34 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
             id="word"
             type="text"
             value={word}
-            onChange={(e) => { setWord(e.target.value); debouncedSpellCheck(e.target.value); }}
+            onChange={(e) => { setWord(e.target.value); spell.check(e.target.value); }}
             onBlur={handleWordBlur}
             placeholder="e.g. serendipity"
             required
           />
-          {checking && <span className="input-status">...</span>}
-          {spellValid && <span className="input-status valid">{'\u2713'}</span>}
-          {spellError !== null && <span className="input-status invalid">{'\u2717'}</span>}
+          {spell.checking && <span className="input-status">...</span>}
+          {spell.valid && <span className="input-status valid">{'\u2713'}</span>}
+          {spell.invalid && <span className="input-status invalid">{'\u2717'}</span>}
         </div>
-        {spellError !== null && (
+        {spell.invalid && (
           <div className="spell-error">
             <span>Word not found in dictionary.</span>
-            {spellError.length > 0 && (
+            {spell.suggestions.length > 0 && (
               <div className="spell-suggestions">
                 Did you mean:{' '}
-                {spellError.map((s, i) => (
+                {spell.suggestions.map((s, i) => (
                   <button
                     key={s}
                     type="button"
                     className="spell-suggestion"
                     onClick={() => {
                       setWord(s);
-                      setSpellError(null);
+                      spell.reset();
                       setTranslation('');
                       setImageUrl(null);
                     }}
                   >
-                    {s}{i < spellError.length - 1 ? ',' : ''}
+                    {s}{i < spell.suggestions.length - 1 ? ',' : ''}
                   </button>
                 ))}
               </div>

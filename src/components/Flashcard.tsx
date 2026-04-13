@@ -9,9 +9,10 @@ interface Props {
 }
 
 export function Flashcard({ words, onUpdate }: Props) {
-  const [reviewWords, setReviewWords] = useState<Word[]>(() =>
-    shuffle(getWordsForReview(words).length > 0 ? getWordsForReview(words) : words)
-  );
+  const [reviewWords, setReviewWords] = useState<Word[]>(() => {
+    const forReview = getWordsForReview(words);
+    return shuffle(forReview.length > 0 ? forReview : words);
+  });
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [sessionStats, setSessionStats] = useState({ correct: 0, incorrect: 0 });
