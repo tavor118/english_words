@@ -2,6 +2,8 @@ import { useState, useMemo, useCallback } from 'react';
 import type { Word } from '../types';
 import { shuffle, updateWordAfterReview, getWordsForReview } from '../utils/spaced-repetition';
 import { PlayButton } from './PlayButton';
+import shared from '../styles/shared.module.css';
+import s from './Quiz.module.css';
 
 interface Props {
   words: Word[];
@@ -59,22 +61,22 @@ export function Quiz({ words, onUpdate }: Props) {
 
   if (words.length < 4) {
     return (
-      <div className="quiz-container">
-        <p className="empty-state">Add at least 4 words to start the quiz!</p>
+      <div className={s.container}>
+        <p className={shared.emptyState}>Add at least 4 words to start the quiz!</p>
       </div>
     );
   }
 
   if (currentIndex >= quizWords.length) {
     return (
-      <div className="quiz-container">
-        <div className="session-complete">
+      <div className={s.container}>
+        <div className={shared.sessionComplete}>
           <h2>Quiz Complete!</h2>
-          <div className="session-stats">
-            <span className="stat correct">{sessionStats.correct} correct</span>
-            <span className="stat incorrect">{sessionStats.incorrect} incorrect</span>
+          <div className={shared.sessionStats}>
+            <span className={shared.statCorrect}>{sessionStats.correct} correct</span>
+            <span className={shared.statIncorrect}>{sessionStats.incorrect} incorrect</span>
           </div>
-          <button className="btn btn-primary" onClick={handleRestart}>
+          <button className={shared.btnPrimary} onClick={handleRestart}>
             Try Again
           </button>
         </div>
@@ -82,50 +84,50 @@ export function Quiz({ words, onUpdate }: Props) {
     );
   }
 
+  const getOptionClass = (optionId: string) => {
+    if (!selected) return s.option;
+    if (optionId === currentWord.id) return s.optionCorrect;
+    if (optionId === selected) return s.optionIncorrect;
+    return s.option;
+  };
+
   return (
-    <div className="quiz-container">
-      <div className="flashcard-progress">
+    <div className={s.container}>
+      <div className={shared.progress}>
         {currentIndex + 1} / {quizWords.length}
       </div>
 
-      <div className="quiz-question">
+      <div className={s.question}>
         <h3>What is the translation of:</h3>
-        <div className="quiz-word-row">
+        <div className={s.wordRow}>
           <PlayButton
             word={currentWord.word}
             audioUrl={currentWord.audioUrl}
             onAudioUrlResolved={(url) => onUpdate(currentWord.id, { audioUrl: url })}
             size="md"
           />
-          <span className="quiz-word">{currentWord.word}</span>
+          <span className={s.word}>{currentWord.word}</span>
         </div>
         {currentWord.example && (
-          <p className="quiz-example">"{currentWord.example}"</p>
+          <p className={s.example}>"{currentWord.example}"</p>
         )}
       </div>
 
-      <div className="quiz-options">
-        {options.map((option) => {
-          let className = 'quiz-option';
-          if (selected) {
-            if (option.id === currentWord.id) className += ' correct';
-            else if (option.id === selected) className += ' incorrect';
-          }
-          return (
-            <button
-              key={option.id}
-              className={className}
-              onClick={() => handleSelect(option.id)}
-              disabled={!!selected}
-            >
-              {option.translation}
-            </button>
-          );
-        })}
+      <div className={s.options}>
+        {options.map((option) => (
+          <button
+            key={option.id}
+            className={getOptionClass(option.id)}
+            onClick={() => handleSelect(option.id)}
+            disabled={!!selected}
+          >
+            {option.translation}
+          </button>
+        ))}
       </div>
 
       {selected && (
-        <button className="btn btn-primary" onClick={handleNext}>
+        <button className={shared.btnPrimary} onClick={handleNext}>
           Next
         </button>
       )}

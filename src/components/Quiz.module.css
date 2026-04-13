@@ -1,0 +1,88 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  padding: 32px 0;
+}
+
+.question {
+  text-align: center;
+}
+
+.question h3 {
+  margin: 0 0 8px;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.wordRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.word {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--text-h);
+  letter-spacing: -0.02em;
+}
+
+.example {
+  font-style: italic;
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 10px;
+}
+
+.options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+  max-width: 520px;
+}
+
+.option {
+  padding: 16px 18px;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  background: var(--card-bg);
+  backdrop-filter: blur(8px);
+  color: var(--text-h);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.option:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.optionCorrect {
+  composes: option;
+  border-color: var(--correct);
+  background: var(--correct-bg);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+.optionIncorrect {
+  composes: option;
+  border-color: var(--incorrect);
+  background: var(--incorrect-bg);
+  box-shadow: 0 2px 8px rgba(244, 63, 94, 0.2);
+}
+
+@media (max-width: 640px) {
+  .options {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { getAudioUrl, playAudio, speakWord } from '../utils/pronunciation';
+import s from './PlayButton.module.css';
 
 interface Props {
   word: string;
@@ -33,7 +34,7 @@ export function PlayButton({ word, audioUrl, onAudioUrlResolved, size = 'sm' }: 
 
   return (
     <button
-      className={`btn-play ${size} ${playing ? 'playing' : ''}`}
+      className={`${s.button} ${s[size]} ${playing ? s.playing : ''}`}
       onClick={handleClick}
       title={`Pronounce "${word}"`}
       type="button"

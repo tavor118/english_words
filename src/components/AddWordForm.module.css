@@ -1,0 +1,102 @@
+.form {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 32px;
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+}
+
+.form h2 {
+  margin: 0 0 24px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.formGroup label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin-bottom: 6px;
+  letter-spacing: 0.01em;
+}
+
+.formGroupInput {
+  width: 100%;
+}
+
+/* Existing word notice */
+.existingNotice {
+  margin-top: 4px;
+}
+
+.existingLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 10px;
+}
+
+.existingCard {
+  padding: 16px;
+  background: var(--primary-soft);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+}
+
+.existingCardText { font-size: 16px; }
+.existingCardTranslation { margin: 4px 0; font-size: 14px; }
+.existingCardExample { margin: 8px 0; }
+
+.existingCardStats {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+/* Image preview */
+.imagePreview {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.imagePreviewWrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.previewImage {
+  max-width: 100%;
+  max-height: 180px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.removeImage {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.removeImage:hover {
+  background: rgba(0, 0, 0, 0.8);
+}

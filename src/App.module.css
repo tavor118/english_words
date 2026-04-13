@@ -1,0 +1,76 @@
+.app {
+  padding: 0 24px 60px;
+}
+
+.header {
+  padding: 32px 0 24px;
+  text-align: center;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0 0 20px;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--primary) 0%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.navBtn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.25s ease;
+}
+
+.navBtn:hover {
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.navBtnActive {
+  composes: navBtn;
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.navBtnActive:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .app {
+    padding: 0 16px 40px;
+  }
+
+  .title {
+    font-size: 26px;
+  }
+
+  .nav {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}

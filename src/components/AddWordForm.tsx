@@ -4,6 +4,8 @@ import type { NewWordInput } from '../hooks/useWords';
 import { useSpellCheck } from '../hooks/useSpellCheck';
 import { translateToUkrainian } from '../utils/translate';
 import { findImage } from '../utils/image-search';
+import shared from '../styles/shared.module.css';
+import s from './AddWordForm.module.css';
 
 interface Props {
   words: Word[];
@@ -93,43 +95,44 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
   };
 
   return (
-    <form className="add-word-form" onSubmit={handleSubmit}>
+    <form className={s.form} onSubmit={handleSubmit}>
       <h2>Add New Word</h2>
-      <div className="form-group">
+      <div className={s.formGroup}>
         <label htmlFor="word">Word *</label>
-        <div className="input-with-status">
+        <div className={shared.inputWithStatus}>
           <input
             id="word"
             type="text"
+            className={`${shared.input} ${s.formGroupInput}`}
             value={word}
             onChange={(e) => { setWord(e.target.value); spell.check(e.target.value); }}
             onBlur={handleWordBlur}
             placeholder="e.g. serendipity"
             required
           />
-          {spell.checking && <span className="input-status">...</span>}
-          {spell.valid && <span className="input-status valid">{'\u2713'}</span>}
-          {spell.invalid && <span className="input-status invalid">{'\u2717'}</span>}
+          {spell.checking && <span className={shared.inputStatus}>...</span>}
+          {spell.valid && <span className={shared.inputStatusValid}>{'\u2713'}</span>}
+          {spell.invalid && <span className={shared.inputStatusInvalid}>{'\u2717'}</span>}
         </div>
         {spell.invalid && (
-          <div className="spell-error">
+          <div className={shared.spellError}>
             <span>Word not found in dictionary.</span>
             {spell.suggestions.length > 0 && (
-              <div className="spell-suggestions">
+              <div className={shared.spellSuggestions}>
                 Did you mean:{' '}
-                {spell.suggestions.map((s, i) => (
+                {spell.suggestions.map((sug, i) => (
                   <button
-                    key={s}
+                    key={sug}
                     type="button"
-                    className="spell-suggestion"
+                    className={shared.spellSuggestion}
                     onClick={() => {
-                      setWord(s);
+                      setWord(sug);
                       spell.reset();
                       setTranslation('');
                       setImageUrl(null);
                     }}
                   >
-                    {s}{i < spell.suggestions.length - 1 ? ',' : ''}
+                    {sug}{i < spell.suggestions.length - 1 ? ',' : ''}
                   </button>
                 ))}
               </div>
@@ -139,39 +142,39 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
       </div>
 
       {existingWord ? (
-        <div className="existing-word-notice">
-          <div className="existing-word-label">Already in your vocabulary</div>
-          <div className="existing-word-card">
+        <div className={s.existingNotice}>
+          <div className={s.existingLabel}>Already in your vocabulary</div>
+          <div className={s.existingCard}>
             {existingWord.imageUrl && (
-              <img src={existingWord.imageUrl} alt={existingWord.word} className="word-image" />
+              <img src={existingWord.imageUrl} alt={existingWord.word} className={shared.wordImage} />
             )}
-            <strong className="word-text">{existingWord.word}</strong>
-            <p className="word-translation">{existingWord.translation}</p>
+            <strong className={s.existingCardText}>{existingWord.word}</strong>
+            <p className={s.existingCardTranslation}>{existingWord.translation}</p>
             {existingWord.example && (
-              <p className="word-example">"{existingWord.example}"</p>
+              <p className={s.existingCardExample}>"{existingWord.example}"</p>
             )}
             {existingWord.tags.length > 0 && (
-              <div className="word-tags">
+              <div className={shared.wordTags}>
                 {existingWord.tags.map((tag) => (
-                  <span key={tag} className="tag">{tag}</span>
+                  <span key={tag} className={shared.tag}>{tag}</span>
                 ))}
               </div>
             )}
-            <div className="word-stats">
-              <span className="stat correct">{existingWord.correctCount}</span>
-              <span className="stat incorrect">{existingWord.incorrectCount}</span>
+            <div className={`${shared.wordStats} ${s.existingCardStats}`}>
+              <span className={shared.statCorrect}>{existingWord.correctCount}</span>
+              <span className={shared.statIncorrect}>{existingWord.incorrectCount}</span>
             </div>
           </div>
         </div>
       ) : (
         <>
           {imageUrl && (
-            <div className="form-image-preview">
-              <div className="image-preview-wrapper">
-                <img src={imageUrl} alt={word} className="word-image-preview" />
+            <div className={s.imagePreview}>
+              <div className={s.imagePreviewWrapper}>
+                <img src={imageUrl} alt={word} className={s.previewImage} />
                 <button
                   type="button"
-                  className="btn-remove-image"
+                  className={s.removeImage}
                   onClick={() => setImageUrl(null)}
                   title="Remove image"
                 >
@@ -180,54 +183,58 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
               </div>
             </div>
           )}
-          <div className="form-group">
+          <div className={s.formGroup}>
             <label htmlFor="imageUrl">Image URL</label>
-            <div className="input-with-status">
+            <div className={shared.inputWithStatus}>
               <input
                 id="imageUrl"
                 type="url"
+                className={`${shared.input} ${s.formGroupInput}`}
                 value={imageUrl ?? ''}
                 onChange={(e) => setImageUrl(e.target.value || null)}
                 placeholder={loadingImage ? 'Searching...' : 'Paste image URL or leave for auto-search'}
               />
-              {loadingImage && <span className="input-status">...</span>}
+              {loadingImage && <span className={shared.inputStatus}>...</span>}
             </div>
           </div>
-          <div className="form-group">
+          <div className={s.formGroup}>
             <label htmlFor="translation">Translation *</label>
-            <div className="input-with-status">
+            <div className={shared.inputWithStatus}>
               <input
                 id="translation"
                 type="text"
+                className={`${shared.input} ${s.formGroupInput}`}
                 value={translation}
                 onChange={(e) => setTranslation(e.target.value)}
                 placeholder={translating ? 'Translating...' : 'e.g. щасливий випадок'}
                 required
               />
-              {translating && <span className="input-status">...</span>}
+              {translating && <span className={shared.inputStatus}>...</span>}
             </div>
           </div>
-          <div className="form-group">
+          <div className={s.formGroup}>
             <label htmlFor="example">Example sentence</label>
             <input
               id="example"
               type="text"
+              className={`${shared.input} ${s.formGroupInput}`}
               value={example}
               onChange={(e) => setExample(e.target.value)}
               placeholder="e.g. Finding that book was pure serendipity."
             />
           </div>
-          <div className="form-group">
+          <div className={s.formGroup}>
             <label htmlFor="tags">Tags (comma-separated)</label>
             <input
               id="tags"
               type="text"
+              className={`${shared.input} ${s.formGroupInput}`}
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               placeholder="e.g. noun, advanced, literature"
             />
           </div>
-          <button type="submit" className="btn btn-primary">Add Word</button>
+          <button type="submit" className={shared.btnPrimary}>Add Word</button>
         </>
       )}
     </form>

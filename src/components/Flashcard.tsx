@@ -2,6 +2,8 @@ import { useState, useCallback } from 'react';
 import type { Word } from '../types';
 import { getWordsForReview, shuffle, updateWordAfterReview } from '../utils/spaced-repetition';
 import { PlayButton } from './PlayButton';
+import shared from '../styles/shared.module.css';
+import s from './Flashcard.module.css';
 
 interface Props {
   words: Word[];
@@ -44,22 +46,22 @@ export function Flashcard({ words, onUpdate }: Props) {
 
   if (words.length === 0) {
     return (
-      <div className="flashcard-container">
-        <p className="empty-state">Add some words first to start practicing!</p>
+      <div className={s.container}>
+        <p className={shared.emptyState}>Add some words first to start practicing!</p>
       </div>
     );
   }
 
   if (currentIndex >= reviewWords.length) {
     return (
-      <div className="flashcard-container">
-        <div className="session-complete">
+      <div className={s.container}>
+        <div className={shared.sessionComplete}>
           <h2>Session Complete!</h2>
-          <div className="session-stats">
-            <span className="stat correct">{sessionStats.correct} correct</span>
-            <span className="stat incorrect">{sessionStats.incorrect} incorrect</span>
+          <div className={shared.sessionStats}>
+            <span className={shared.statCorrect}>{sessionStats.correct} correct</span>
+            <span className={shared.statIncorrect}>{sessionStats.incorrect} incorrect</span>
           </div>
-          <button className="btn btn-primary" onClick={handleRestart}>
+          <button className={shared.btnPrimary} onClick={handleRestart}>
             Practice Again
           </button>
         </div>
@@ -68,44 +70,44 @@ export function Flashcard({ words, onUpdate }: Props) {
   }
 
   return (
-    <div className="flashcard-container">
-      <div className="flashcard-progress">
+    <div className={s.container}>
+      <div className={shared.progress}>
         {currentIndex + 1} / {reviewWords.length}
       </div>
 
       <div
-        className={`flashcard ${flipped ? 'flipped' : ''}`}
+        className={`${s.card} ${flipped ? s.flipped : ''}`}
         onClick={() => setFlipped((f) => !f)}
       >
-        <div className="flashcard-front">
-          <span className="flashcard-label">Word</span>
+        <div className={s.front}>
+          <span className={s.label}>Word</span>
           <PlayButton
             word={currentWord.word}
             audioUrl={currentWord.audioUrl}
             onAudioUrlResolved={(url) => onUpdate(currentWord.id, { audioUrl: url })}
             size="md"
           />
-          <span className="flashcard-text">{currentWord.word}</span>
-          <span className="flashcard-hint">Click to flip</span>
+          <span className={s.text}>{currentWord.word}</span>
+          <span className={s.hint}>Click to flip</span>
         </div>
-        <div className="flashcard-back">
-          <span className="flashcard-label">Translation</span>
-          <span className="flashcard-text">{currentWord.translation}</span>
+        <div className={s.back}>
+          <span className={s.label}>Translation</span>
+          <span className={s.text}>{currentWord.translation}</span>
           {currentWord.imageUrl && (
-            <img src={currentWord.imageUrl} alt={currentWord.word} className="flashcard-image" />
+            <img src={currentWord.imageUrl} alt={currentWord.word} className={s.image} />
           )}
           {currentWord.example && (
-            <span className="flashcard-example">"{currentWord.example}"</span>
+            <span className={s.example}>"{currentWord.example}"</span>
           )}
         </div>
       </div>
 
       {flipped && (
-        <div className="flashcard-actions">
-          <button className="btn btn-incorrect" onClick={() => handleAnswer(false)}>
+        <div className={s.actions}>
+          <button className={shared.btnIncorrect} onClick={() => handleAnswer(false)}>
             Don't Know
           </button>
-          <button className="btn btn-correct" onClick={() => handleAnswer(true)}>
+          <button className={shared.btnCorrect} onClick={() => handleAnswer(true)}>
             Got It!
           </button>
         </div>

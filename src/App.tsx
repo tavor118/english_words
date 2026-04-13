@@ -6,7 +6,7 @@ import { WordList } from './components/WordList';
 import { Flashcard } from './components/Flashcard';
 import { Quiz } from './components/Quiz';
 import { exportWords, importWords } from './utils/storage';
-import './App.css';
+import s from './App.module.css';
 
 function App() {
   const [view, setView] = useState<View>('list');
@@ -24,39 +24,31 @@ function App() {
     }
   };
 
+  const navItems: { key: View; label: string; onClick: () => void }[] = [
+    { key: 'list', label: 'Words', onClick: () => setView('list') },
+    { key: 'add', label: 'Add', onClick: () => { setPrefillWord(''); setView('add'); } },
+    { key: 'flashcard', label: 'Flashcards', onClick: () => { setSessionKey((k) => k + 1); setView('flashcard'); } },
+    { key: 'quiz', label: 'Quiz', onClick: () => { setSessionKey((k) => k + 1); setView('quiz'); } },
+  ];
+
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>English Words</h1>
-        <nav className="nav">
-          <button
-            className={`nav-btn ${view === 'list' ? 'active' : ''}`}
-            onClick={() => setView('list')}
-          >
-            Words
-          </button>
-          <button
-            className={`nav-btn ${view === 'add' ? 'active' : ''}`}
-            onClick={() => { setPrefillWord(''); setView('add'); }}
-          >
-            Add
-          </button>
-          <button
-            className={`nav-btn ${view === 'flashcard' ? 'active' : ''}`}
-            onClick={() => { setSessionKey((k) => k + 1); setView('flashcard'); }}
-          >
-            Flashcards
-          </button>
-          <button
-            className={`nav-btn ${view === 'quiz' ? 'active' : ''}`}
-            onClick={() => { setSessionKey((k) => k + 1); setView('quiz'); }}
-          >
-            Quiz
-          </button>
+    <div className={s.app}>
+      <header className={s.header}>
+        <h1 className={s.title}>English Words</h1>
+        <nav className={s.nav}>
+          {navItems.map((item) => (
+            <button
+              key={item.key}
+              className={view === item.key ? s.navBtnActive : s.navBtn}
+              onClick={item.onClick}
+            >
+              {item.label}
+            </button>
+          ))}
         </nav>
       </header>
 
-      <main className="main">
+      <main>
         {view === 'list' && (
           <WordList
             words={words}

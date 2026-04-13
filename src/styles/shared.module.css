@@ -1,0 +1,311 @@
+/* Shared input base */
+.input {
+  padding: 11px 14px;
+  border: 1.5px solid var(--input-border);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 14px;
+  background: var(--input-bg);
+  backdrop-filter: blur(4px);
+  color: var(--text-h);
+  transition: all 0.25s ease;
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--input-focus);
+}
+
+/* Input with status indicator */
+.inputWithStatus {
+  position: relative;
+}
+
+.inputWithStatus .input {
+  padding-left: 36px;
+}
+
+.inputStatus {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 14px;
+  animation: pulse 1s infinite;
+}
+
+.inputStatusValid {
+  composes: inputStatus;
+  color: var(--correct);
+  animation: none;
+}
+
+.inputStatusInvalid {
+  composes: inputStatus;
+  color: var(--incorrect);
+  animation: none;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* Buttons */
+.btn {
+  padding: 10px 22px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  letter-spacing: -0.01em;
+}
+
+.btnPrimary {
+  composes: btn;
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+}
+
+.btnPrimary:hover {
+  background: var(--primary-hover);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+  transform: translateY(-1px);
+}
+
+.btnSecondary {
+  composes: btn;
+  background: var(--card-bg);
+  backdrop-filter: blur(8px);
+  color: var(--text-h);
+  border: 1px solid var(--border);
+}
+
+.btnSecondary:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.btnCorrect {
+  composes: btn;
+  background: var(--correct);
+  color: #fff;
+  padding: 14px 36px;
+  font-size: 15px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btnCorrect:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.btnIncorrect {
+  composes: btn;
+  background: var(--incorrect);
+  color: #fff;
+  padding: 14px 36px;
+  font-size: 15px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(244, 63, 94, 0.3);
+}
+
+.btnIncorrect:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);
+}
+
+.btnDelete {
+  background: var(--incorrect-bg);
+  border: 1px solid transparent;
+  color: var(--incorrect);
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+  padding: 4px 10px;
+  line-height: 1.4;
+  border-radius: var(--radius-xs);
+  transition: all 0.2s;
+}
+
+.btnDelete:hover {
+  color: var(--incorrect);
+  background: var(--incorrect-bg);
+}
+
+.btnFav {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0;
+  line-height: 1;
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
+.btnFav:hover,
+.btnFavActive {
+  color: var(--favorite);
+}
+
+/* Spell check */
+.spellError {
+  font-size: 13px;
+  color: var(--incorrect);
+  margin-top: 6px;
+}
+
+.spellSuggestions {
+  margin-top: 4px;
+  color: var(--text);
+}
+
+.spellSuggestion {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0 2px;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+.spellSuggestion:hover {
+  color: var(--primary-hover);
+}
+
+/* Stats */
+.statCorrect {
+  color: var(--correct);
+}
+
+.statCorrect::before {
+  content: '\2713 ';
+}
+
+.statIncorrect {
+  color: var(--incorrect);
+}
+
+.statIncorrect::before {
+  content: '\2717 ';
+}
+
+/* Tags */
+.wordTags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+}
+
+/* Word common text styles */
+.wordText {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.wordTranslation {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.wordExample {
+  font-style: italic;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.wordStats {
+  display: flex;
+  gap: 14px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Word image */
+.wordImage {
+  width: 100%;
+  max-height: 120px;
+  object-fit: cover;
+  border-radius: var(--radius-xs);
+  margin-bottom: 8px;
+}
+
+/* Empty state */
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+/* Session complete (shared between Flashcard & Quiz) */
+.sessionComplete {
+  text-align: center;
+  padding: 40px;
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+}
+
+.sessionComplete h2 {
+  margin: 0 0 20px;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.sessionStats {
+  display: flex;
+  gap: 32px;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 28px;
+}
+
+/* Progress pill (shared between Flashcard & Quiz) */
+.progress {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--card-bg);
+  backdrop-filter: blur(8px);
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--card-border);
+}
