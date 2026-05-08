@@ -76,6 +76,7 @@ export function Flashcard({ words, onUpdate }: Props) {
       </div>
 
       <div
+        key={currentIndex}
         className={`${s.card} ${flipped ? s.flipped : ''}`}
         onClick={() => setFlipped((f) => !f)}
       >
