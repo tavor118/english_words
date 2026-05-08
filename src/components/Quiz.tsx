@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import type { Word } from '../types';
 import { shuffle, updateWordAfterReview, getWordsForReview } from '../utils/spaced-repetition';
 import { PlayButton } from './PlayButton';
@@ -21,15 +21,18 @@ export function Quiz({ words, onUpdate }: Props) {
 
   const currentWord = quizWords[currentIndex];
 
+  const wordsRef = useRef(words);
+  wordsRef.current = words;
+
   const options = useMemo(() => {
     if (!currentWord) return [];
-    const others = words.filter((w) => w.id !== currentWord.id);
+    const others = wordsRef.current.filter((w) => w.id !== currentWord.id);
     const wrongAnswers = shuffle(others).slice(0, 3);
     return shuffle([
       ...wrongAnswers.map((w) => ({ id: w.id, translation: w.translation })),
       { id: currentWord.id, translation: currentWord.translation },
     ]);
-  }, [currentWord, words]);
+  }, [currentWord]);
 
   const handleSelect = useCallback(
     (optionId: string) => {
