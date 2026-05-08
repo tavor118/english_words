@@ -1,10 +1,12 @@
 import { useState, useId } from 'react';
 import type { View } from './types';
 import { useWords } from './hooks/useWords';
+import { useDriveSync } from './hooks/useDriveSync';
 import { AddWordForm } from './components/AddWordForm';
 import { WordList } from './components/WordList';
 import { Flashcard } from './components/Flashcard';
 import { Quiz } from './components/Quiz';
+import { SyncControl } from './components/SyncControl';
 import { exportWords, importWords } from './utils/storage';
 import s from './App.module.css';
 
@@ -14,6 +16,7 @@ function App() {
   const [sessionKey, setSessionKey] = useState(0);
   const stableId = useId();
   const { words, addWord, updateWord, deleteWord, replaceWords } = useWords();
+  const sync = useDriveSync({ words, replaceWords });
 
   const handleImport = async (file: File) => {
     try {
@@ -46,6 +49,14 @@ function App() {
             </button>
           ))}
         </nav>
+        <SyncControl
+          status={sync.status}
+          error={sync.error}
+          signedIn={sync.signedIn}
+          configured={sync.configured}
+          onSignIn={sync.signIn}
+          onSignOut={sync.signOut}
+        />
       </header>
 
       <main>
