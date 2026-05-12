@@ -10,13 +10,16 @@ interface Props {
   words: Word[];
   onUpdate: (id: string, updates: Partial<Word>) => void;
   onAnswer?: () => void;
+  limit?: number;
+  onComplete?: () => void;
 }
 
-export function Quiz({ words, onUpdate, onAnswer }: Props) {
+export function Quiz({ words, onUpdate, onAnswer, limit, onComplete }: Props) {
   const [wordsSnapshot] = useState(words);
-  const [quizWords] = useState<Word[]>(() =>
-    shuffle(getWordsForExercise(wordsSnapshot, 'quiz'))
-  );
+  const [quizWords] = useState<Word[]>(() => {
+    const list = shuffle(getWordsForExercise(wordsSnapshot, 'quiz'));
+    return limit ? list.slice(0, limit) : list;
+  });
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [sessionStats, setSessionStats] = useState({ correct: 0, incorrect: 0 });
@@ -69,6 +72,16 @@ export function Quiz({ words, onUpdate, onAnswer }: Props) {
     setSelected(null);
     setCurrentIndex((prev) => prev + 1);
   };
+
+  const cannotRun = words.length < 4 || quizWords.length === 0;
+  const finished = currentIndex >= quizWords.length;
+  const bail = cannotRun || finished;
+
+  useEffect(() => {
+    if (bail) onComplete?.();
+  }, [bail, onComplete]);
+
+  if (bail && onComplete) return null;
 
   if (words.length < 4) {
     return (

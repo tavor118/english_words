@@ -11,6 +11,7 @@ Data is stored in **localStorage**, and the app is hosted on **GitHub Pages**.
 - [Features](#features)
 - [Learning Model](#learning-model)
   - [Practice exercises](#practice-exercises)
+  - [Practice modes — Practice vs Marathon](#practice-modes--practice-vs-marathon)
   - [Flashcards (spaced repetition)](#flashcards-spaced-repetition)
   - [Daily goal](#daily-goal)
 - [Keyboard Shortcuts](#keyboard-shortcuts)
@@ -32,13 +33,14 @@ Data is stored in **localStorage**, and the app is hosted on **GitHub Pages**.
 - **Spell check** — validates words against a dictionary with suggestions
 - **Pronunciation** — play word audio from dictionary API or browser speech synthesis
 - **Six practice exercises** — Quiz, Reverse Quiz, Typing, Listening, Match Pairs, Scrambled Letters. A word becomes **Learned** once it has been answered correctly in all six.
+- **Practice and Marathon tabs** — drill one exercise at a time, or run a **Marathon** session that cycles through all six (up to 10 words each).
 - **Flashcards** — flip-to-reveal cards with spaced-repetition scheduling, independent of the six-exercise model
 - **Full keyboard support** — every exercise can be driven from the keyboard (number keys, letter typing, Enter to advance)
 - **Per-word progress** — each word row shows a 6-dot progress indicator, with manual **Mark learned** / **Reset** controls
 - **Daily goal** — a red progress bar at the bottom of the page tracks your daily activity (target: 50 answers/day, resets each day)
 - **Import/Export** — backup and restore your word list as JSON
 - **Dark mode** — follows system preference
-- **Responsive** — works on desktop and mobile
+- **Responsive** — adapts to mobile: the daily-progress bar shrinks, the Google sign-in collapses to an icon, and the practice navigation rewraps onto multiple lines so everything stays usable on narrow screens (down to ~320px wide). Safe-area insets are honored for iOS phones with a home indicator.
 
 ## Learning Model
 
@@ -60,6 +62,19 @@ Rules:
 - **Wrong answer** — no penalty; the exercise stays unpassed and you can retry in the next session. Other exercises are not affected.
 - **Learned** — once all six exercises are passed, the word is flagged `Learned`, badged on the word row, and excluded from those exercises by default. Use **Reset** on the row to bring it back, or **Mark learned** to flip a word straight to learned without practicing.
 - Each session for an exercise only shows words where that specific exercise is not yet passed.
+
+### Practice modes — Practice vs Marathon
+
+The two practice modes are top-level tabs in the main nav.
+
+**Practice** — pick one of the six exercises (Quiz, Reverse Quiz, Typing, Listening, Match Pairs, Scrambled) from the pill sub-nav and drill just that one until you switch. Each session pulls *every* unpassed-for-that-exercise word.
+
+**Marathon** — one session walks through all six exercises in fixed order. For each step, the app picks up to **10 words** that haven't yet passed *that specific exercise*, so the word set is independent per step: a word can show up in Typing and Scrambled but skip Quiz if Quiz is already passed for it. When a step finishes, the next exercise starts automatically. After all six steps, you get a final recap.
+
+Notes:
+- Match Pairs is capped at **5 pairs (10 cards)** per round (matches the `1`–`5` / `6`–`9`,`0` keyboard layout), so the Match Pairs step in Marathon is 5 pairs even though the per-step cap is 10.
+- Steps with too few words to run (Quiz/Reverse Quiz need ≥ 4 total words, Match Pairs needs ≥ 2) are silently skipped in Marathon.
+- Daily-goal points still tick on each correct answer regardless of mode.
 
 ### Flashcards (spaced repetition)
 
@@ -157,6 +172,7 @@ src/
     Listening.tsx            # Practice exercise: audio → type EN word
     MatchPairs.tsx           # Practice exercise: tap matching EN/UA cards
     Scrambled.tsx            # Practice exercise: arrange shuffled letters
+    Marathon.tsx             # Container that runs all six exercises in sequence
     DailyProgressBar.tsx     # Bottom-fixed daily activity tracker (50 pts/day)
     WordList.tsx             # Searchable/filterable word list
     WordRow.tsx              # Word row with progress dots + learned controls

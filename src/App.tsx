@@ -13,6 +13,7 @@ import { Typing } from './components/Typing';
 import { Listening } from './components/Listening';
 import { MatchPairs } from './components/MatchPairs';
 import { Scrambled } from './components/Scrambled';
+import { Marathon } from './components/Marathon';
 import { SyncControl } from './components/SyncControl';
 import { DailyProgressBar } from './components/DailyProgressBar';
 import { exportWords, importWords } from './utils/storage';
@@ -51,6 +52,7 @@ function App() {
     { key: 'list', label: 'Words', onClick: () => setView('list') },
     { key: 'add', label: 'Add', onClick: () => { setPrefillWord(''); setView('add'); } },
     { key: 'practice', label: 'Practice', onClick: () => startSession('practice') },
+    { key: 'marathon', label: 'Marathon', onClick: () => startSession('marathon') },
     { key: 'flashcard', label: 'Flashcards', onClick: () => startSession('flashcard') },
   ];
 
@@ -125,6 +127,14 @@ function App() {
             </nav>
             {renderPractice()}
           </div>
+        )}
+        {view === 'marathon' && (
+          <Marathon
+            key={`${stableId}-marathon-${sessionKey}`}
+            words={words}
+            onUpdate={updateWord}
+            onAnswer={daily.addPoint}
+          />
         )}
       </main>
       <DailyProgressBar points={daily.points} goal={daily.goal} percentage={daily.percentage} />

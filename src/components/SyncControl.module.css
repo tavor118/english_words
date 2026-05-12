@@ -132,18 +132,32 @@
 
 @media (max-width: 640px) {
   .wrapper {
-    top: 14px;
-    right: 14px;
+    top: 10px;
+    right: 10px;
     gap: 8px;
   }
 
   .googleBtn {
-    padding: 7px 12px 7px 10px;
-    font-size: 12px;
+    padding: 6px;
+    font-size: 0;
+    gap: 0;
+  }
+
+  .googleBtnText {
+    display: none;
+  }
+
+  .googleLogo {
+    width: 20px;
+    height: 20px;
   }
 
   .status {
     padding: 5px 10px;
     font-size: 11px;
+  }
+
+  .error {
+    display: none;
   }
 }

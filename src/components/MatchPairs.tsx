@@ -9,16 +9,19 @@ interface Props {
   words: Word[];
   onUpdate: (id: string, updates: Partial<Word>) => void;
   onAnswer?: () => void;
+  limit?: number;
+  onComplete?: () => void;
 }
 
 const ROUND_SIZE = 5;
 const EN_KEYS = ['1', '2', '3', '4', '5'];
 const UA_KEYS = ['6', '7', '8', '9', '0'];
 
-export function MatchPairs({ words, onUpdate, onAnswer }: Props) {
-  const [round] = useState<Word[]>(() =>
-    shuffle(getWordsForExercise(words, 'matchPairs')).slice(0, ROUND_SIZE)
-  );
+export function MatchPairs({ words, onUpdate, onAnswer, limit, onComplete }: Props) {
+  const [round] = useState<Word[]>(() => {
+    const cap = Math.min(limit ?? ROUND_SIZE, ROUND_SIZE);
+    return shuffle(getWordsForExercise(words, 'matchPairs')).slice(0, cap);
+  });
   const [enOrder] = useState<Word[]>(() => shuffle(round));
   const [uaOrder] = useState<Word[]>(() => shuffle(round));
   const [selectedEn, setSelectedEn] = useState<string | null>(null);
@@ -97,6 +100,15 @@ export function MatchPairs({ words, onUpdate, onAnswer }: Props) {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [enOrder, uaOrder, handleSelectEn, handleSelectUa]);
+
+  const cannotRun = words.length < 2 || round.length === 0;
+  const bail = cannotRun || allMatched;
+
+  useEffect(() => {
+    if (bail) onComplete?.();
+  }, [bail, onComplete]);
+
+  if (bail && onComplete) return null;
 
   if (words.length < 2) {
     return (

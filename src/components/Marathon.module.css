@@ -1,0 +1,89 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 6px 14px;
+  background: var(--card-bg);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  box-shadow: var(--shadow-sm);
+}
+
+.stepCount {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stepLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-h);
+  letter-spacing: -0.01em;
+}
+
+.dots {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  padding-left: 4px;
+  border-left: 1px solid var(--border);
+}
+
+.dotPending,
+.dotActive,
+.dotDone {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.dotPending {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--border);
+}
+
+.dotActive {
+  background: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.dotDone {
+  background: var(--correct);
+}
+
+.completeNote {
+  margin: 0 0 24px;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 460px;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .progress {
+    gap: 8px;
+    padding: 6px 12px;
+  }
+
+  .stepCount {
+    font-size: 10px;
+  }
+
+  .stepLabel {
+    font-size: 13px;
+  }
+}

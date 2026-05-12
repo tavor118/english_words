@@ -9,6 +9,8 @@ interface Props {
   words: Word[];
   onUpdate: (id: string, updates: Partial<Word>) => void;
   onAnswer?: () => void;
+  limit?: number;
+  onComplete?: () => void;
 }
 
 interface Tile {
@@ -169,8 +171,11 @@ function ScrambledRound({ word, onResolved, onNext }: RoundProps) {
   );
 }
 
-export function Scrambled({ words, onUpdate, onAnswer }: Props) {
-  const [queue] = useState<Word[]>(() => shuffle(getWordsForExercise(words, 'scrambled')));
+export function Scrambled({ words, onUpdate, onAnswer, limit, onComplete }: Props) {
+  const [queue] = useState<Word[]>(() => {
+    const list = shuffle(getWordsForExercise(words, 'scrambled'));
+    return limit ? list.slice(0, limit) : list;
+  });
   const [currentIndex, setCurrentIndex] = useState(0);
   const [sessionStats, setSessionStats] = useState({ correct: 0, incorrect: 0 });
 
@@ -192,6 +197,16 @@ export function Scrambled({ words, onUpdate, onAnswer }: Props) {
   );
 
   const handleNext = () => setCurrentIndex((prev) => prev + 1);
+
+  const cannotRun = words.length === 0 || queue.length === 0;
+  const finished = currentIndex >= queue.length;
+  const bail = cannotRun || finished;
+
+  useEffect(() => {
+    if (bail) onComplete?.();
+  }, [bail, onComplete]);
+
+  if (bail && onComplete) return null;
 
   if (words.length === 0) {
     return (

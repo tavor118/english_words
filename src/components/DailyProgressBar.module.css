@@ -4,22 +4,23 @@
   right: 0;
   bottom: 0;
   z-index: 50;
-  padding: 8px 16px 6px;
+  padding: 4px 16px;
+  padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px));
   background: linear-gradient(to top, var(--card-bg) 55%, transparent);
   backdrop-filter: blur(8px);
   pointer-events: none;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 0;
 }
 
 .canvas {
   position: relative;
   width: 100%;
-  max-width: 920px;
+  max-width: 720px;
   aspect-ratio: 1200 / 190;
-  max-height: 96px;
+  max-height: 60px;
   pointer-events: auto;
 }
 
@@ -39,29 +40,30 @@
 .layerFill {
   opacity: 1;
   transition: clip-path 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  filter: drop-shadow(0 1px 4px rgba(244, 63, 94, 0.35));
+  filter: drop-shadow(0 1px 3px rgba(244, 63, 94, 0.3));
 }
 
 .layerFillDone {
   composes: layerFill;
-  filter: drop-shadow(0 0 10px rgba(244, 63, 94, 0.7));
+  filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.65));
   animation: pulseDone 1.4s ease-in-out infinite;
 }
 
 @keyframes pulseDone {
-  0%, 100% { filter: drop-shadow(0 0 6px rgba(244, 63, 94, 0.55)); }
-  50%      { filter: drop-shadow(0 0 16px rgba(244, 63, 94, 0.95)); }
+  0%, 100% { filter: drop-shadow(0 0 5px rgba(244, 63, 94, 0.5)); }
+  50%      { filter: drop-shadow(0 0 12px rgba(244, 63, 94, 0.9)); }
 }
 
 .label {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
+  gap: 6px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--text);
   pointer-events: auto;
+  margin-top: -2px;
 }
 
 .points {
@@ -78,14 +80,15 @@
 
 @media (max-width: 640px) {
   .wrap {
-    padding: 4px 8px 4px;
+    padding: 2px 8px;
+    padding-bottom: calc(2px + env(safe-area-inset-bottom, 0px));
   }
 
   .canvas {
-    max-height: 72px;
+    max-height: 44px;
   }
 
   .label {
-    font-size: 11px;
+    font-size: 10px;
   }
 }

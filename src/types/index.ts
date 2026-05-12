@@ -45,6 +45,7 @@ export type View =
   | 'list'
   | 'add'
   | 'flashcard'
-  | 'practice';
+  | 'practice'
+  | 'marathon';
 
 export type PracticeView = ExerciseKey;

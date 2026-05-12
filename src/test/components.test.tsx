@@ -9,6 +9,7 @@ import { Typing } from '../components/Typing';
 import { Listening } from '../components/Listening';
 import { MatchPairs } from '../components/MatchPairs';
 import { Scrambled } from '../components/Scrambled';
+import { Marathon } from '../components/Marathon';
 import { PlayButton } from '../components/PlayButton';
 import { WordRow } from '../components/WordRow';
 import { DailyProgressBar } from '../components/DailyProgressBar';
@@ -473,6 +474,61 @@ describe('Flashcard keyboard', () => {
     expect(onUpdate).toHaveBeenCalled();
     const [, update] = onUpdate.mock.calls[0];
     expect(update.incorrectCount).toBe(1);
+  });
+});
+
+describe('limit + onComplete', () => {
+  it('Typing caps the queue at `limit`', () => {
+    const words = Array.from({ length: 20 }, (_, i) =>
+      createWord({ word: `w${i}`, translation: `t${i}` })
+    );
+    render(<Typing words={words} onUpdate={vi.fn()} limit={3} />);
+    // Queue is shuffled, so we can't predict the exact word, but progress reads "1 / 3".
+    expect(screen.getByText('1 / 3')).toBeInTheDocument();
+  });
+
+  it('Typing fires onComplete (and renders nothing) when no words at all', () => {
+    const onComplete = vi.fn();
+    const { container } = render(
+      <Typing words={[]} onUpdate={vi.fn()} onComplete={onComplete} />
+    );
+    expect(onComplete).toHaveBeenCalled();
+    expect(container.firstChild).toBeNull();
+  });
+
+  it('Quiz fires onComplete when there are too few words to run', () => {
+    const onComplete = vi.fn();
+    const words = [createWord(), createWord()]; // < 4
+    const { container } = render(
+      <Quiz words={words} onUpdate={vi.fn()} onComplete={onComplete} />
+    );
+    expect(onComplete).toHaveBeenCalled();
+    expect(container.firstChild).toBeNull();
+  });
+
+  it('Quiz still renders its empty-state when onComplete is not provided', () => {
+    const words = [createWord(), createWord()];
+    render(<Quiz words={words} onUpdate={vi.fn()} />);
+    expect(screen.getByText(/at least 4 words/i)).toBeInTheDocument();
+  });
+});
+
+describe('Marathon', () => {
+  it('shows the recap when no exercise can run', () => {
+    // Empty word list — every exercise bails immediately, the container falls through to the recap.
+    render(<Marathon words={[]} onUpdate={vi.fn()} onAnswer={vi.fn()} />);
+    expect(screen.getByText(/marathon complete/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /practice again/i })).toBeInTheDocument();
+  });
+
+  it('renders the first exercise and its step indicator', () => {
+    const words = Array.from({ length: 6 }, (_, i) =>
+      createWord({ word: `w${i}`, translation: `t${i}` })
+    );
+    render(<Marathon words={words} onUpdate={vi.fn()} onAnswer={vi.fn()} />);
+    expect(screen.getByText(/exercise 1 of 6/i)).toBeInTheDocument();
+    // Quiz is the first key in EXERCISE_KEYS.
+    expect(screen.getByText(/what is the translation/i)).toBeInTheDocument();
   });
 });
 

@@ -54,9 +54,12 @@ export function SyncControl({ status, error, signedIn, configured, onSignIn, onS
           className={s.googleBtn}
           onClick={onSignIn}
           disabled={status === 'syncing'}
+          title="Sign in with Google"
         >
           <GoogleLogo />
-          {status === 'syncing' ? 'Signing in…' : 'Sign in with Google'}
+          <span className={s.googleBtnText}>
+            {status === 'syncing' ? 'Signing in…' : 'Sign in with Google'}
+          </span>
         </button>
       )}
       {error && <span className={s.error} title={error}>{error}</span>}
