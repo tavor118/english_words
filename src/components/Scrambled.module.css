@@ -24,6 +24,12 @@
   letter-spacing: -0.02em;
 }
 
+.kbdHint {
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
 .slots {
   display: flex;
   gap: 8px;

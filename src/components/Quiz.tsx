@@ -23,10 +23,6 @@ export function Quiz({ words, onUpdate }: Props) {
 
   const currentWord = quizWords[currentIndex];
 
-  useEffect(() => {
-    if (selected) nextBtnRef.current?.focus();
-  }, [selected]);
-
   const options = useMemo(() => {
     if (!currentWord) return [];
     const others = wordsSnapshot.filter((w) => w.id !== currentWord.id);
@@ -52,6 +48,20 @@ export function Quiz({ words, onUpdate }: Props) {
     },
     [selected, currentWord, onUpdate]
   );
+
+  useEffect(() => {
+    if (selected) nextBtnRef.current?.focus();
+  }, [selected]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (selected) return;
+      const idx = parseInt(e.key, 10) - 1;
+      if (idx >= 0 && idx < options.length) handleSelect(options[idx].id);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [selected, options, handleSelect]);
 
   const handleNext = () => {
     setSelected(null);
@@ -118,13 +128,14 @@ export function Quiz({ words, onUpdate }: Props) {
       </div>
 
       <div className={s.options}>
-        {options.map((option) => (
+        {options.map((option, i) => (
           <button
             key={option.id}
             className={getOptionClass(option.id)}
             onClick={() => handleSelect(option.id)}
             disabled={!!selected}
           >
+            <span className={s.optionNum}>{i + 1}</span>
             {option.translation}
           </button>
         ))}

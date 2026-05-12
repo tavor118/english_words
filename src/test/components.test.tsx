@@ -152,8 +152,8 @@ describe('Flashcard', () => {
     expect(screen.getByText(/click or press enter to flip/i)).toBeInTheDocument();
     fireEvent.click(screen.getByText('hello'));
 
-    expect(screen.getByRole('button', { name: "Don't Know" })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Got It!' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /don't know/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /got it!/i })).toBeInTheDocument();
   });
 });
 
@@ -180,7 +180,7 @@ describe('Quiz', () => {
     render(<Quiz words={words} onUpdate={onUpdate} />);
 
     const options = screen.getAllByRole('button').filter(
-      (btn) => btn.textContent?.startsWith('t')
+      (btn) => /^\d\s*t\d$/.test(btn.textContent ?? '')
     );
     fireEvent.click(options[0]);
 
@@ -193,6 +193,35 @@ describe('PlayButton', () => {
   it('renders without crashing', () => {
     render(<PlayButton word="test" />);
     expect(screen.getByTitle(/pronounce "test"/i)).toBeInTheDocument();
+  });
+});
+
+describe('Quiz keyboard', () => {
+  it('selects an option when its number key is pressed', () => {
+    const words = Array.from({ length: 5 }, (_, i) =>
+      createWord({ word: `w${i}`, translation: `t${i}` })
+    );
+    const onUpdate = vi.fn();
+    render(<Quiz words={words} onUpdate={onUpdate} />);
+
+    fireEvent.keyDown(window, { key: '1' });
+
+    expect(screen.getByRole('button', { name: 'Next' })).toBeInTheDocument();
+    expect(onUpdate).toHaveBeenCalled();
+  });
+
+  it('ignores number keys after an option has been selected', () => {
+    const words = Array.from({ length: 5 }, (_, i) =>
+      createWord({ word: `w${i}`, translation: `t${i}` })
+    );
+    const onUpdate = vi.fn();
+    render(<Quiz words={words} onUpdate={onUpdate} />);
+
+    fireEvent.keyDown(window, { key: '1' });
+    fireEvent.keyDown(window, { key: '2' });
+
+    // onUpdate should only have been called once — the second keypress is a no-op.
+    expect(onUpdate).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -210,7 +239,7 @@ describe('Quiz progress', () => {
     const idx = parseInt(shown.slice(1), 10);
     const correctTranslation = `t${idx}`;
 
-    fireEvent.click(screen.getByRole('button', { name: correctTranslation }));
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(`${correctTranslation}$`) }));
 
     expect(onUpdate).toHaveBeenCalledWith(
       words[idx].id,
@@ -246,7 +275,7 @@ describe('ReverseQuiz', () => {
     const idx = parseInt(shown.slice(3), 10);
     const correctWord = `eng${idx}`;
 
-    fireEvent.click(screen.getByRole('button', { name: correctWord }));
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(`${correctWord}$`) }));
 
     expect(onUpdate).toHaveBeenCalledWith(
       words[idx].id,
@@ -345,11 +374,26 @@ describe('MatchPairs', () => {
     const onUpdate = vi.fn();
     render(<MatchPairs words={words} onUpdate={onUpdate} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'apple' }));
-    fireEvent.click(screen.getByRole('button', { name: 'яблуко' }));
+    fireEvent.click(screen.getByRole('button', { name: /apple$/ }));
+    fireEvent.click(screen.getByRole('button', { name: /яблуко$/ }));
 
     expect(onUpdate).toHaveBeenCalledWith(
       words[0].id,
+      expect.objectContaining({ progress: expect.objectContaining({ matchPairs: true }) })
+    );
+  });
+
+  it('accepts keyboard shortcuts for both columns', () => {
+    const word = createWord({ word: 'apple', translation: 'яблуко' });
+    const onUpdate = vi.fn();
+    render(<MatchPairs words={[word]} onUpdate={onUpdate} />);
+
+    // With a single word, the EN column has one card at "1" and the UA column has one at "6".
+    fireEvent.keyDown(window, { key: '1' });
+    fireEvent.keyDown(window, { key: '6' });
+
+    expect(onUpdate).toHaveBeenCalledWith(
+      word.id,
       expect.objectContaining({ progress: expect.objectContaining({ matchPairs: true }) })
     );
   });
@@ -374,6 +418,60 @@ describe('Scrambled', () => {
       word.id,
       expect.objectContaining({ progress: expect.objectContaining({ scrambled: true }) })
     );
+  });
+
+  it('accepts letters typed on the keyboard', () => {
+    const word = createWord({ word: 'ab', translation: 'аб' });
+    const onUpdate = vi.fn();
+    render(<Scrambled words={[word]} onUpdate={onUpdate} />);
+
+    fireEvent.keyDown(window, { key: 'a' });
+    fireEvent.keyDown(window, { key: 'b' });
+
+    expect(onUpdate).toHaveBeenCalledWith(
+      word.id,
+      expect.objectContaining({ progress: expect.objectContaining({ scrambled: true }) })
+    );
+  });
+});
+
+describe('Flashcard keyboard', () => {
+  it('flips the card on Enter', () => {
+    const words = [createWord({ word: 'hello', translation: 'привіт' })];
+    render(<Flashcard words={words} onUpdate={vi.fn()} />);
+
+    const card = screen.getByRole('button', { name: /flip card to translation/i });
+    fireEvent.keyDown(card, { key: 'Enter' });
+
+    expect(screen.getByRole('button', { name: /got it!/i })).toBeInTheDocument();
+  });
+
+  it('marks Got It on K when flipped', () => {
+    const words = [createWord({ word: 'hello', translation: 'привіт' })];
+    const onUpdate = vi.fn();
+    render(<Flashcard words={words} onUpdate={onUpdate} />);
+
+    const card = screen.getByRole('button', { name: /flip card to translation/i });
+    fireEvent.keyDown(card, { key: 'Enter' });
+    fireEvent.keyDown(window, { key: 'k' });
+
+    expect(onUpdate).toHaveBeenCalled();
+    const [, update] = onUpdate.mock.calls[0];
+    expect(update.correctCount).toBe(1);
+  });
+
+  it('marks Don\'t Know on D when flipped', () => {
+    const words = [createWord({ word: 'hello', translation: 'привіт' })];
+    const onUpdate = vi.fn();
+    render(<Flashcard words={words} onUpdate={onUpdate} />);
+
+    const card = screen.getByRole('button', { name: /flip card to translation/i });
+    fireEvent.keyDown(card, { key: 'Enter' });
+    fireEvent.keyDown(window, { key: 'd' });
+
+    expect(onUpdate).toHaveBeenCalled();
+    const [, update] = onUpdate.mock.calls[0];
+    expect(update.incorrectCount).toBe(1);
   });
 });
 

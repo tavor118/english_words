@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import type { Word } from '../types';
 import { shuffle, updateWordAfterReview } from '../utils/spaced-repetition';
 import { getWordsForExercise, markExercisePassed } from '../utils/exercise-progress';
@@ -10,7 +10,9 @@ interface Props {
   onUpdate: (id: string, updates: Partial<Word>) => void;
 }
 
-const ROUND_SIZE = 6;
+const ROUND_SIZE = 5;
+const EN_KEYS = ['1', '2', '3', '4', '5'];
+const UA_KEYS = ['6', '7', '8', '9', '0'];
 
 export function MatchPairs({ words, onUpdate }: Props) {
   const [round] = useState<Word[]>(() =>
@@ -60,17 +62,39 @@ export function MatchPairs({ words, onUpdate }: Props) {
     [wordById, onUpdate]
   );
 
-  const handleSelectEn = (id: string) => {
-    if (matchedIds.has(id) || wrong) return;
-    setSelectedEn(id);
-    if (selectedUa) evaluate(id, selectedUa);
-  };
+  const handleSelectEn = useCallback(
+    (id: string) => {
+      if (matchedIds.has(id) || wrong) return;
+      setSelectedEn(id);
+      if (selectedUa) evaluate(id, selectedUa);
+    },
+    [matchedIds, selectedUa, wrong, evaluate]
+  );
 
-  const handleSelectUa = (id: string) => {
-    if (matchedIds.has(id) || wrong) return;
-    setSelectedUa(id);
-    if (selectedEn) evaluate(selectedEn, id);
-  };
+  const handleSelectUa = useCallback(
+    (id: string) => {
+      if (matchedIds.has(id) || wrong) return;
+      setSelectedUa(id);
+      if (selectedEn) evaluate(selectedEn, id);
+    },
+    [matchedIds, selectedEn, wrong, evaluate]
+  );
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const enIdx = EN_KEYS.indexOf(e.key);
+      if (enIdx >= 0 && enIdx < enOrder.length) {
+        handleSelectEn(enOrder[enIdx].id);
+        return;
+      }
+      const uaIdx = UA_KEYS.indexOf(e.key);
+      if (uaIdx >= 0 && uaIdx < uaOrder.length) {
+        handleSelectUa(uaOrder[uaIdx].id);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [enOrder, uaOrder, handleSelectEn, handleSelectUa]);
 
   if (words.length < 2) {
     return (
@@ -117,25 +141,27 @@ export function MatchPairs({ words, onUpdate }: Props) {
 
       <div className={s.grid}>
         <div className={s.col}>
-          {enOrder.map((w) => (
+          {enOrder.map((w, i) => (
             <button
               key={w.id}
               className={cellClass(w.id, 'en', selectedEn)}
               onClick={() => handleSelectEn(w.id)}
               disabled={matchedIds.has(w.id)}
             >
+              <span className={s.cellNum}>{EN_KEYS[i]}</span>
               {w.word}
             </button>
           ))}
         </div>
         <div className={s.col}>
-          {uaOrder.map((w) => (
+          {uaOrder.map((w, i) => (
             <button
               key={w.id}
               className={cellClass(w.id, 'ua', selectedUa)}
               onClick={() => handleSelectUa(w.id)}
               disabled={matchedIds.has(w.id)}
             >
+              <span className={s.cellNum}>{UA_KEYS[i]}</span>
               {w.translation}
             </button>
           ))}

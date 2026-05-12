@@ -95,6 +95,20 @@
   gap: 16px;
 }
 
+.kbd {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.22);
+  color: inherit;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  vertical-align: 2px;
+}
+
 @media (max-width: 640px) {
   .actions {
     flex-direction: column;

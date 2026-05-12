@@ -12,6 +12,7 @@ Data is stored in **localStorage**, and the app is hosted on **GitHub Pages**.
 - [Learning Model](#learning-model)
   - [Practice exercises](#practice-exercises)
   - [Flashcards (spaced repetition)](#flashcards-spaced-repetition)
+- [Keyboard Shortcuts](#keyboard-shortcuts)
 - [Data Storage](#data-storage)
 - [Google Drive Sync (optional)](#google-drive-sync-optional)
   - [One-time setup](#one-time-setup)
@@ -31,6 +32,7 @@ Data is stored in **localStorage**, and the app is hosted on **GitHub Pages**.
 - **Pronunciation** — play word audio from dictionary API or browser speech synthesis
 - **Six practice exercises** — Quiz, Reverse Quiz, Typing, Listening, Match Pairs, Scrambled Letters. A word becomes **Learned** once it has been answered correctly in all six.
 - **Flashcards** — flip-to-reveal cards with spaced-repetition scheduling, independent of the six-exercise model
+- **Full keyboard support** — every exercise can be driven from the keyboard (number keys, letter typing, Enter to advance)
 - **Per-word progress** — each word row shows a 6-dot progress indicator, with manual **Mark learned** / **Reset** controls
 - **Import/Export** — backup and restore your word list as JSON
 - **Dark mode** — follows system preference
@@ -71,6 +73,16 @@ Each word tracks:
 - `interval` / `nextReviewAt` — Flashcard scheduling fields.
 - `progress` — `{ quiz, reverseQuiz, typing, listening, matchPairs, scrambled }` flags.
 - `learnedAt` — timestamp set when the sixth exercise is passed.
+
+## Keyboard Shortcuts
+
+Every exercise can be played without touching the mouse.
+
+- **Quiz / Reverse Quiz** — press `1`–`4` to pick the option with that number, then `Enter` to advance to the next word.
+- **Typing / Listening** — type your answer, press `Enter` to check, press `Enter` again to advance. Listening auto-plays the audio when each word appears.
+- **Match Pairs** — each card shows a number badge. Press `1`–`5` to select a card in the English column, `6`–`9` or `0` to select one in the Ukrainian column. A pair is evaluated as soon as one card from each side is selected.
+- **Scrambled** — just type the letters of the word; the matching tile is placed automatically. `Backspace` removes the last placed letter. `Enter` advances after a verdict.
+- **Flashcards** — the card is focusable on entry; press `Enter` or `Space` to flip. Once flipped, press `K` for **Got It!** or `D` for **Don't Know**.
 
 ## Data Storage
 

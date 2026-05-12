@@ -50,6 +50,34 @@ function ScrambledRound({ word, onResolved, onNext }: RoundProps) {
     if (verdict) nextBtnRef.current?.focus();
   }, [verdict]);
 
+  useEffect(() => {
+    if (verdict) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Backspace') {
+        if (used.length > 0) {
+          e.preventDefault();
+          setUsed((prev) => prev.slice(0, -1));
+        }
+        return;
+      }
+      if (e.key.length !== 1) return;
+      const lower = e.key.toLowerCase();
+      if (!/^[a-z]$/.test(lower)) return;
+      const tile = tiles.find((t) => t.char === lower && !used.includes(t.id));
+      if (!tile) return;
+      const next = [...used, tile.id];
+      setUsed(next);
+      if (next.length === target.length) {
+        const builtStr = next.map((idx) => tiles.find((t) => t.id === idx)?.char ?? '').join('');
+        const correct = builtStr === target;
+        setVerdict(correct ? 'correct' : 'incorrect');
+        onResolved(correct);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [verdict, tiles, used, target, onResolved]);
+
   const handleTile = (id: number) => {
     if (verdict || used.includes(id)) return;
     const next = [...used, id];
@@ -83,6 +111,7 @@ function ScrambledRound({ word, onResolved, onNext }: RoundProps) {
       <div className={s.question}>
         <h3>Unscramble the word for:</h3>
         <div className={s.translation}>{word.translation}</div>
+        <div className={s.kbdHint}>Type letters or click tiles · Backspace to undo</div>
       </div>
 
       <div className={`${s.slots} ${verdict === 'correct' ? s.slotsCorrect : ''} ${verdict === 'incorrect' ? s.slotsIncorrect : ''}`}>

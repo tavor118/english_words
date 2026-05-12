@@ -20,13 +20,18 @@ export function Flashcard({ words, onUpdate }: Props) {
   const [sessionStats, setSessionStats] = useState({ correct: 0, incorrect: 0 });
   const gotItBtnRef = useRef<HTMLButtonElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const restartBtnRef = useRef<HTMLButtonElement>(null);
 
   const currentWord = reviewWords[currentIndex];
 
   useEffect(() => {
+    if (currentIndex >= reviewWords.length) {
+      restartBtnRef.current?.focus();
+      return;
+    }
     if (flipped) gotItBtnRef.current?.focus();
     else cardRef.current?.focus();
-  }, [flipped, currentIndex]);
+  }, [flipped, currentIndex, reviewWords.length]);
 
   const handleCardKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -49,6 +54,16 @@ export function Flashcard({ words, onUpdate }: Props) {
     },
     [currentWord, onUpdate]
   );
+
+  useEffect(() => {
+    if (!flipped) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'k' || e.key === 'K') handleAnswer(true);
+      else if (e.key === 'd' || e.key === 'D') handleAnswer(false);
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [flipped, handleAnswer]);
 
   const handleRestart = () => {
     const forReview = getWordsForReview(words);
@@ -75,7 +90,7 @@ export function Flashcard({ words, onUpdate }: Props) {
             <span className={shared.statCorrect}>{sessionStats.correct} correct</span>
             <span className={shared.statIncorrect}>{sessionStats.incorrect} incorrect</span>
           </div>
-          <button className={shared.btnPrimary} onClick={handleRestart}>
+          <button ref={restartBtnRef} className={shared.btnPrimary} onClick={handleRestart}>
             Practice Again
           </button>
         </div>
@@ -126,10 +141,10 @@ export function Flashcard({ words, onUpdate }: Props) {
       {flipped && (
         <div className={s.actions}>
           <button className={shared.btnIncorrect} onClick={() => handleAnswer(false)}>
-            Don't Know
+            Don't Know <kbd className={s.kbd}>D</kbd>
           </button>
           <button ref={gotItBtnRef} className={shared.btnCorrect} onClick={() => handleAnswer(true)}>
-            Got It!
+            Got It! <kbd className={s.kbd}>K</kbd>
           </button>
         </div>
       )}
