@@ -8,6 +8,7 @@ import s from './Scrambled.module.css';
 interface Props {
   words: Word[];
   onUpdate: (id: string, updates: Partial<Word>) => void;
+  onAnswer?: () => void;
 }
 
 interface Tile {
@@ -168,7 +169,7 @@ function ScrambledRound({ word, onResolved, onNext }: RoundProps) {
   );
 }
 
-export function Scrambled({ words, onUpdate }: Props) {
+export function Scrambled({ words, onUpdate, onAnswer }: Props) {
   const [queue] = useState<Word[]>(() => shuffle(getWordsForExercise(words, 'scrambled')));
   const [currentIndex, setCurrentIndex] = useState(0);
   const [sessionStats, setSessionStats] = useState({ correct: 0, incorrect: 0 });
@@ -185,8 +186,9 @@ export function Scrambled({ words, onUpdate }: Props) {
         correct: prev.correct + (correct ? 1 : 0),
         incorrect: prev.incorrect + (correct ? 0 : 1),
       }));
+      if (correct) onAnswer?.();
     },
-    [currentWord, onUpdate]
+    [currentWord, onUpdate, onAnswer]
   );
 
   const handleNext = () => setCurrentIndex((prev) => prev + 1);

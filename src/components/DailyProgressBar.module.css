@@ -1,0 +1,91 @@
+.wrap {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  padding: 8px 16px 6px;
+  background: linear-gradient(to top, var(--card-bg) 55%, transparent);
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.canvas {
+  position: relative;
+  width: 100%;
+  max-width: 920px;
+  aspect-ratio: 1200 / 190;
+  max-height: 96px;
+  pointer-events: auto;
+}
+
+.layerBase,
+.layerFill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.layerBase {
+  opacity: 0.16;
+}
+
+.layerFill {
+  opacity: 1;
+  transition: clip-path 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 1px 4px rgba(244, 63, 94, 0.35));
+}
+
+.layerFillDone {
+  composes: layerFill;
+  filter: drop-shadow(0 0 10px rgba(244, 63, 94, 0.7));
+  animation: pulseDone 1.4s ease-in-out infinite;
+}
+
+@keyframes pulseDone {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(244, 63, 94, 0.55)); }
+  50%      { filter: drop-shadow(0 0 16px rgba(244, 63, 94, 0.95)); }
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  pointer-events: auto;
+}
+
+.points {
+  color: var(--text-h);
+}
+
+.pct {
+  color: #dc2626;
+}
+
+.sep {
+  color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+  .wrap {
+    padding: 4px 8px 4px;
+  }
+
+  .canvas {
+    max-height: 72px;
+  }
+
+  .label {
+    font-size: 11px;
+  }
+}

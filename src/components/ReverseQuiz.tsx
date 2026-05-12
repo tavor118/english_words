@@ -8,9 +8,10 @@ import s from './Quiz.module.css';
 interface Props {
   words: Word[];
   onUpdate: (id: string, updates: Partial<Word>) => void;
+  onAnswer?: () => void;
 }
 
-export function ReverseQuiz({ words, onUpdate }: Props) {
+export function ReverseQuiz({ words, onUpdate, onAnswer }: Props) {
   const [wordsSnapshot] = useState(words);
   const [quizWords] = useState<Word[]>(() =>
     shuffle(getWordsForExercise(wordsSnapshot, 'reverseQuiz'))
@@ -44,8 +45,9 @@ export function ReverseQuiz({ words, onUpdate }: Props) {
         correct: prev.correct + (correct ? 1 : 0),
         incorrect: prev.incorrect + (correct ? 0 : 1),
       }));
+      if (correct) onAnswer?.();
     },
-    [selected, currentWord, onUpdate]
+    [selected, currentWord, onUpdate, onAnswer]
   );
 
   useEffect(() => {

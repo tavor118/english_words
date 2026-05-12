@@ -8,13 +8,14 @@ import s from './MatchPairs.module.css';
 interface Props {
   words: Word[];
   onUpdate: (id: string, updates: Partial<Word>) => void;
+  onAnswer?: () => void;
 }
 
 const ROUND_SIZE = 5;
 const EN_KEYS = ['1', '2', '3', '4', '5'];
 const UA_KEYS = ['6', '7', '8', '9', '0'];
 
-export function MatchPairs({ words, onUpdate }: Props) {
+export function MatchPairs({ words, onUpdate, onAnswer }: Props) {
   const [round] = useState<Word[]>(() =>
     shuffle(getWordsForExercise(words, 'matchPairs')).slice(0, ROUND_SIZE)
   );
@@ -47,6 +48,7 @@ export function MatchPairs({ words, onUpdate }: Props) {
         incorrect: prev.incorrect + (correct ? 0 : 1),
       }));
       if (correct) {
+        onAnswer?.();
         setMatchedIds((prev) => new Set(prev).add(enId));
         setSelectedEn(null);
         setSelectedUa(null);
@@ -59,7 +61,7 @@ export function MatchPairs({ words, onUpdate }: Props) {
         }, 600);
       }
     },
-    [wordById, onUpdate]
+    [wordById, onUpdate, onAnswer]
   );
 
   const handleSelectEn = useCallback(

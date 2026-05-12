@@ -11,6 +11,7 @@ import { MatchPairs } from '../components/MatchPairs';
 import { Scrambled } from '../components/Scrambled';
 import { PlayButton } from '../components/PlayButton';
 import { WordRow } from '../components/WordRow';
+import { DailyProgressBar } from '../components/DailyProgressBar';
 import { allPassedProgress, emptyProgress } from '../utils/exercise-progress';
 import { createWord } from './helpers';
 
@@ -472,6 +473,72 @@ describe('Flashcard keyboard', () => {
     expect(onUpdate).toHaveBeenCalled();
     const [, update] = onUpdate.mock.calls[0];
     expect(update.incorrectCount).toBe(1);
+  });
+});
+
+describe('DailyProgressBar', () => {
+  it('renders points, goal, and percentage', () => {
+    render(<DailyProgressBar points={20} goal={50} percentage={40} />);
+    expect(screen.getByText('20 / 50')).toBeInTheDocument();
+    expect(screen.getByText('40%')).toBeInTheDocument();
+  });
+
+  it('clamps width to 100% at or above the goal', () => {
+    render(<DailyProgressBar points={60} goal={50} percentage={100} />);
+    expect(screen.getByText('60 / 50')).toBeInTheDocument();
+    expect(screen.getByText('100%')).toBeInTheDocument();
+  });
+});
+
+describe('exercise points', () => {
+  it('Typing calls onAnswer on a correct submission', () => {
+    const word = createWord({ word: 'apple', translation: 'яблуко' });
+    const onAnswer = vi.fn();
+    render(<Typing words={[word]} onUpdate={vi.fn()} onAnswer={onAnswer} />);
+
+    fireEvent.change(screen.getByPlaceholderText(/type here/i), {
+      target: { value: 'apple' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Check' }));
+
+    expect(onAnswer).toHaveBeenCalledTimes(1);
+  });
+
+  it('Typing does NOT call onAnswer on an incorrect submission', () => {
+    const word = createWord({ word: 'apple', translation: 'яблуко' });
+    const onAnswer = vi.fn();
+    render(<Typing words={[word]} onUpdate={vi.fn()} onAnswer={onAnswer} />);
+
+    fireEvent.change(screen.getByPlaceholderText(/type here/i), {
+      target: { value: 'banana' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Check' }));
+
+    expect(onAnswer).not.toHaveBeenCalled();
+  });
+
+  it('Flashcard calls onAnswer when Got It is pressed', () => {
+    const words = [createWord({ word: 'hello', translation: 'привіт' })];
+    const onAnswer = vi.fn();
+    render(<Flashcard words={words} onUpdate={vi.fn()} onAnswer={onAnswer} />);
+
+    const card = screen.getByRole('button', { name: /flip card to translation/i });
+    fireEvent.keyDown(card, { key: 'Enter' });
+    fireEvent.keyDown(window, { key: 'k' });
+
+    expect(onAnswer).toHaveBeenCalledTimes(1);
+  });
+
+  it('Flashcard does NOT call onAnswer when Don\'t Know is pressed', () => {
+    const words = [createWord({ word: 'hello', translation: 'привіт' })];
+    const onAnswer = vi.fn();
+    render(<Flashcard words={words} onUpdate={vi.fn()} onAnswer={onAnswer} />);
+
+    const card = screen.getByRole('button', { name: /flip card to translation/i });
+    fireEvent.keyDown(card, { key: 'Enter' });
+    fireEvent.keyDown(window, { key: 'd' });
+
+    expect(onAnswer).not.toHaveBeenCalled();
   });
 });
 

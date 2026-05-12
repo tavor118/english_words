@@ -11,13 +11,14 @@ import l from './Listening.module.css';
 interface Props {
   words: Word[];
   onUpdate: (id: string, updates: Partial<Word>) => void;
+  onAnswer?: () => void;
 }
 
 function normalize(value: string): string {
   return value.trim().toLowerCase();
 }
 
-export function Listening({ words, onUpdate }: Props) {
+export function Listening({ words, onUpdate, onAnswer }: Props) {
   const [queue] = useState<Word[]>(() => shuffle(getWordsForExercise(words, 'listening')));
   const [currentIndex, setCurrentIndex] = useState(0);
   const [input, setInput] = useState('');
@@ -52,8 +53,9 @@ export function Listening({ words, onUpdate }: Props) {
         correct: prev.correct + (correct ? 1 : 0),
         incorrect: prev.incorrect + (correct ? 0 : 1),
       }));
+      if (correct) onAnswer?.();
     },
-    [verdict, currentWord, input, onUpdate]
+    [verdict, currentWord, input, onUpdate, onAnswer]
   );
 
   const handleNext = () => {

@@ -8,9 +8,10 @@ import s from './Flashcard.module.css';
 interface Props {
   words: Word[];
   onUpdate: (id: string, updates: Partial<Word>) => void;
+  onAnswer?: () => void;
 }
 
-export function Flashcard({ words, onUpdate }: Props) {
+export function Flashcard({ words, onUpdate, onAnswer }: Props) {
   const [reviewWords, setReviewWords] = useState<Word[]>(() => {
     const forReview = getWordsForReview(words);
     return shuffle(forReview.length > 0 ? forReview : words);
@@ -49,10 +50,11 @@ export function Flashcard({ words, onUpdate }: Props) {
         correct: prev.correct + (correct ? 1 : 0),
         incorrect: prev.incorrect + (correct ? 0 : 1),
       }));
+      if (correct) onAnswer?.();
       setFlipped(false);
       setCurrentIndex((prev) => prev + 1);
     },
-    [currentWord, onUpdate]
+    [currentWord, onUpdate, onAnswer]
   );
 
   useEffect(() => {

@@ -12,6 +12,7 @@ Data is stored in **localStorage**, and the app is hosted on **GitHub Pages**.
 - [Learning Model](#learning-model)
   - [Practice exercises](#practice-exercises)
   - [Flashcards (spaced repetition)](#flashcards-spaced-repetition)
+  - [Daily goal](#daily-goal)
 - [Keyboard Shortcuts](#keyboard-shortcuts)
 - [Data Storage](#data-storage)
 - [Google Drive Sync (optional)](#google-drive-sync-optional)
@@ -34,6 +35,7 @@ Data is stored in **localStorage**, and the app is hosted on **GitHub Pages**.
 - **Flashcards** — flip-to-reveal cards with spaced-repetition scheduling, independent of the six-exercise model
 - **Full keyboard support** — every exercise can be driven from the keyboard (number keys, letter typing, Enter to advance)
 - **Per-word progress** — each word row shows a 6-dot progress indicator, with manual **Mark learned** / **Reset** controls
+- **Daily goal** — a red progress bar at the bottom of the page tracks your daily activity (target: 50 answers/day, resets each day)
 - **Import/Export** — backup and restore your word list as JSON
 - **Dark mode** — follows system preference
 - **Responsive** — works on desktop and mobile
@@ -73,6 +75,15 @@ Each word tracks:
 - `interval` / `nextReviewAt` — Flashcard scheduling fields.
 - `progress` — `{ quiz, reverseQuiz, typing, listening, matchPairs, scrambled }` flags.
 - `learnedAt` — timestamp set when the sixth exercise is passed.
+
+### Daily goal
+
+A red progress bar pinned to the bottom of the page tracks how much practice you've done today.
+
+- **1 point per correct answer** — every correct exercise submission and every Flashcard rated **Got It!** gives you 1 point. Wrong answers and **Don't Know** do not fill the bar. Match Pairs awards 1 point per correctly matched pair.
+- **Goal: 50 points/day** — the bar fills as you practice and the flame ornament rides the leading edge. When you cross 50 the bar turns into a solid red glow and the flame switches to a 🎉.
+- **Auto-resets at midnight (local time)** — at the start of a new day the bar goes back to `0 / 50`. Yesterday's points are not preserved; this is a daily activity tracker, not a streak counter.
+- **Storage** — kept in `localStorage` under `english-words-daily-progress` as `{ date: 'YYYY-MM-DD', points: N }`. Independent of the word list and not synced via Google Drive.
 
 ## Keyboard Shortcuts
 
@@ -146,6 +157,7 @@ src/
     Listening.tsx            # Practice exercise: audio → type EN word
     MatchPairs.tsx           # Practice exercise: tap matching EN/UA cards
     Scrambled.tsx            # Practice exercise: arrange shuffled letters
+    DailyProgressBar.tsx     # Bottom-fixed daily activity tracker (50 pts/day)
     WordList.tsx             # Searchable/filterable word list
     WordRow.tsx              # Word row with progress dots + learned controls
     SearchBar.tsx            # Search input with spell check indicator
@@ -156,6 +168,7 @@ src/
     useWords.ts              # CRUD hook for word management
     useSpellCheck.ts         # Debounced spell check with suggestions
     useDriveSync.ts          # Google Drive sync state machine
+    useDailyProgress.ts      # Daily activity points + day-rollover handling
   styles/
     shared.module.css        # Shared styles (buttons, inputs, tags, stats)
   types/
@@ -163,6 +176,7 @@ src/
   utils/
     spaced-repetition.ts     # Flashcard scheduling and shuffle
     exercise-progress.ts     # Mark/reset/check the six-exercise progress on a word
+    daily-progress.ts        # Daily-points persistence + today/midnight handling
     storage.ts               # localStorage + JSON import/export + schema migration
     spellcheck.ts            # Dictionary API + Datamuse suggestions
     translate.ts             # MyMemory translation API
@@ -173,6 +187,7 @@ src/
     components.test.tsx        # Component smoke + interaction tests
     spaced-repetition.test.ts  # Flashcard SR scheduling
     exercise-progress.test.ts  # Six-exercise progress utility
+    daily-progress.test.ts     # Daily-points persistence + day-rollover reset
     storage.test.ts            # localStorage round-trip + schema migration
     helpers.ts                 # Test utilities (word factory)
     setup.ts                   # Test setup (jest-dom matchers)

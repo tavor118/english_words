@@ -3,6 +3,7 @@ import type { View, PracticeView } from './types';
 import { EXERCISE_KEYS, EXERCISE_LABELS } from './types';
 import { useWords } from './hooks/useWords';
 import { useDriveSync } from './hooks/useDriveSync';
+import { useDailyProgress } from './hooks/useDailyProgress';
 import { AddWordForm } from './components/AddWordForm';
 import { WordList } from './components/WordList';
 import { Flashcard } from './components/Flashcard';
@@ -13,6 +14,7 @@ import { Listening } from './components/Listening';
 import { MatchPairs } from './components/MatchPairs';
 import { Scrambled } from './components/Scrambled';
 import { SyncControl } from './components/SyncControl';
+import { DailyProgressBar } from './components/DailyProgressBar';
 import { exportWords, importWords } from './utils/storage';
 import s from './App.module.css';
 
@@ -24,6 +26,7 @@ function App() {
   const stableId = useId();
   const { words, addWord, updateWord, deleteWord, replaceWords } = useWords();
   const sync = useDriveSync({ words, replaceWords });
+  const daily = useDailyProgress();
 
   const handleImport = async (file: File) => {
     try {
@@ -55,17 +58,17 @@ function App() {
     const key = `${stableId}-${practiceView}-${sessionKey}`;
     switch (practiceView) {
       case 'quiz':
-        return <Quiz key={key} words={words} onUpdate={updateWord} />;
+        return <Quiz key={key} words={words} onUpdate={updateWord} onAnswer={daily.addPoint} />;
       case 'reverseQuiz':
-        return <ReverseQuiz key={key} words={words} onUpdate={updateWord} />;
+        return <ReverseQuiz key={key} words={words} onUpdate={updateWord} onAnswer={daily.addPoint} />;
       case 'typing':
-        return <Typing key={key} words={words} onUpdate={updateWord} />;
+        return <Typing key={key} words={words} onUpdate={updateWord} onAnswer={daily.addPoint} />;
       case 'listening':
-        return <Listening key={key} words={words} onUpdate={updateWord} />;
+        return <Listening key={key} words={words} onUpdate={updateWord} onAnswer={daily.addPoint} />;
       case 'matchPairs':
-        return <MatchPairs key={key} words={words} onUpdate={updateWord} />;
+        return <MatchPairs key={key} words={words} onUpdate={updateWord} onAnswer={daily.addPoint} />;
       case 'scrambled':
-        return <Scrambled key={key} words={words} onUpdate={updateWord} />;
+        return <Scrambled key={key} words={words} onUpdate={updateWord} onAnswer={daily.addPoint} />;
     }
   };
 
@@ -106,7 +109,7 @@ function App() {
           />
         )}
         {view === 'add' && <AddWordForm key={prefillWord} words={words} initialWord={prefillWord} onAdd={(w) => { addWord(w); setPrefillWord(''); }} />}
-        {view === 'flashcard' && <Flashcard key={`${stableId}-fc-${sessionKey}`} words={words} onUpdate={updateWord} />}
+        {view === 'flashcard' && <Flashcard key={`${stableId}-fc-${sessionKey}`} words={words} onUpdate={updateWord} onAnswer={daily.addPoint} />}
         {view === 'practice' && (
           <div>
             <nav className={s.subNav}>
@@ -124,6 +127,7 @@ function App() {
           </div>
         )}
       </main>
+      <DailyProgressBar points={daily.points} goal={daily.goal} percentage={daily.percentage} />
     </div>
   );
 }

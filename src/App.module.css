@@ -1,6 +1,6 @@
 .app {
   position: relative;
-  padding: 0 24px 60px;
+  padding: 0 24px 130px;
 }
 
 .header {
@@ -103,7 +103,7 @@
 
 @media (max-width: 640px) {
   .app {
-    padding: 0 16px 40px;
+    padding: 0 16px 100px;
   }
 
   .title {
