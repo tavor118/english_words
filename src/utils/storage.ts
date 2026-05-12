@@ -1,11 +1,39 @@
-import type { Word } from '../types';
+import type { Word, ExerciseProgress } from '../types';
+import { EXERCISE_KEYS } from '../types';
 
 const STORAGE_KEY = 'english-words';
+
+function emptyProgress(): ExerciseProgress {
+  return EXERCISE_KEYS.reduce((acc, key) => {
+    acc[key] = false;
+    return acc;
+  }, {} as ExerciseProgress);
+}
+
+function migrateWord(raw: Word): Word {
+  const existing = raw.progress as Partial<ExerciseProgress> | undefined;
+  const progress = emptyProgress();
+  if (existing) {
+    for (const key of EXERCISE_KEYS) {
+      if (existing[key]) progress[key] = true;
+    }
+  }
+  const allPassed = EXERCISE_KEYS.every((k) => progress[k]);
+  return {
+    ...raw,
+    progress,
+    learnedAt: raw.learnedAt ?? (allPassed ? Date.now() : null),
+  };
+}
+
+function migrateWords(words: Word[]): Word[] {
+  return words.map(migrateWord);
+}
 
 export function loadWords(): Word[] {
   const data = localStorage.getItem(STORAGE_KEY);
   if (!data) return [];
-  return JSON.parse(data);
+  return migrateWords(JSON.parse(data));
 }
 
 export function saveWords(words: Word[]): void {
@@ -29,7 +57,7 @@ export function importWords(file: File): Promise<Word[]> {
       try {
         const words = JSON.parse(e.target?.result as string);
         if (!Array.isArray(words)) throw new Error('Invalid format');
-        resolve(words);
+        resolve(migrateWords(words));
       } catch {
         reject(new Error('Invalid JSON file'));
       }

@@ -1,0 +1,15 @@
+.playWrap {
+  display: flex;
+  justify-content: center;
+  padding: 14px 0 4px;
+}
+
+.hint {
+  margin-top: 14px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.hint strong {
+  color: var(--text-h);
+}

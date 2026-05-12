@@ -1,17 +1,24 @@
 import { useState, useId } from 'react';
-import type { View } from './types';
+import type { View, PracticeView } from './types';
+import { EXERCISE_KEYS, EXERCISE_LABELS } from './types';
 import { useWords } from './hooks/useWords';
 import { useDriveSync } from './hooks/useDriveSync';
 import { AddWordForm } from './components/AddWordForm';
 import { WordList } from './components/WordList';
 import { Flashcard } from './components/Flashcard';
 import { Quiz } from './components/Quiz';
+import { ReverseQuiz } from './components/ReverseQuiz';
+import { Typing } from './components/Typing';
+import { Listening } from './components/Listening';
+import { MatchPairs } from './components/MatchPairs';
+import { Scrambled } from './components/Scrambled';
 import { SyncControl } from './components/SyncControl';
 import { exportWords, importWords } from './utils/storage';
 import s from './App.module.css';
 
 function App() {
   const [view, setView] = useState<View>('list');
+  const [practiceView, setPracticeView] = useState<PracticeView>('quiz');
   const [prefillWord, setPrefillWord] = useState('');
   const [sessionKey, setSessionKey] = useState(0);
   const stableId = useId();
@@ -27,12 +34,40 @@ function App() {
     }
   };
 
+  const startSession = (next: View) => {
+    setSessionKey((k) => k + 1);
+    setView(next);
+  };
+
+  const switchPractice = (next: PracticeView) => {
+    setPracticeView(next);
+    setSessionKey((k) => k + 1);
+  };
+
   const navItems: { key: View; label: string; onClick: () => void }[] = [
     { key: 'list', label: 'Words', onClick: () => setView('list') },
     { key: 'add', label: 'Add', onClick: () => { setPrefillWord(''); setView('add'); } },
-    { key: 'flashcard', label: 'Flashcards', onClick: () => { setSessionKey((k) => k + 1); setView('flashcard'); } },
-    { key: 'quiz', label: 'Quiz', onClick: () => { setSessionKey((k) => k + 1); setView('quiz'); } },
+    { key: 'practice', label: 'Practice', onClick: () => startSession('practice') },
+    { key: 'flashcard', label: 'Flashcards', onClick: () => startSession('flashcard') },
   ];
+
+  const renderPractice = () => {
+    const key = `${stableId}-${practiceView}-${sessionKey}`;
+    switch (practiceView) {
+      case 'quiz':
+        return <Quiz key={key} words={words} onUpdate={updateWord} />;
+      case 'reverseQuiz':
+        return <ReverseQuiz key={key} words={words} onUpdate={updateWord} />;
+      case 'typing':
+        return <Typing key={key} words={words} onUpdate={updateWord} />;
+      case 'listening':
+        return <Listening key={key} words={words} onUpdate={updateWord} />;
+      case 'matchPairs':
+        return <MatchPairs key={key} words={words} onUpdate={updateWord} />;
+      case 'scrambled':
+        return <Scrambled key={key} words={words} onUpdate={updateWord} />;
+    }
+  };
 
   return (
     <div className={s.app}>
@@ -72,7 +107,22 @@ function App() {
         )}
         {view === 'add' && <AddWordForm key={prefillWord} words={words} initialWord={prefillWord} onAdd={(w) => { addWord(w); setPrefillWord(''); }} />}
         {view === 'flashcard' && <Flashcard key={`${stableId}-fc-${sessionKey}`} words={words} onUpdate={updateWord} />}
-        {view === 'quiz' && <Quiz key={`${stableId}-qz-${sessionKey}`} words={words} onUpdate={updateWord} />}
+        {view === 'practice' && (
+          <div>
+            <nav className={s.subNav}>
+              {EXERCISE_KEYS.map((key) => (
+                <button
+                  key={key}
+                  className={practiceView === key ? s.subNavBtnActive : s.subNavBtn}
+                  onClick={() => switchPractice(key)}
+                >
+                  {EXERCISE_LABELS[key]}
+                </button>
+              ))}
+            </nav>
+            {renderPractice()}
+          </div>
+        )}
       </main>
     </div>
   );

@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { loadWords, saveWords } from '../utils/storage';
+import { allPassedProgress, emptyProgress } from '../utils/exercise-progress';
+import { EXERCISE_KEYS } from '../types';
 import { createWord } from './helpers';
 
 const store: Record<string, string> = {};
@@ -29,5 +31,30 @@ describe('storage', () => {
     saveWords(words);
     const loaded = loadWords();
     expect(loaded).toEqual(words);
+  });
+
+  it('migrates words missing progress field to an empty progress map', () => {
+    // Simulate the v1 schema: no progress, no learnedAt.
+    const v1Word = { ...createWord({ word: 'old' }) } as Partial<ReturnType<typeof createWord>>;
+    delete v1Word.progress;
+    delete v1Word.learnedAt;
+    store['english-words'] = JSON.stringify([v1Word]);
+
+    const loaded = loadWords();
+    expect(loaded[0].progress).toEqual(emptyProgress());
+    expect(loaded[0].learnedAt).toBeNull();
+  });
+
+  it('preserves partial progress and stamps learnedAt when all six are already true', () => {
+    const v1Word = {
+      ...createWord({ word: 'old' }),
+      progress: allPassedProgress(),
+      learnedAt: undefined as unknown,
+    };
+    store['english-words'] = JSON.stringify([v1Word]);
+
+    const loaded = loadWords();
+    expect(EXERCISE_KEYS.every((k) => loaded[0].progress[k])).toBe(true);
+    expect(loaded[0].learnedAt).toBeGreaterThan(0);
   });
 });

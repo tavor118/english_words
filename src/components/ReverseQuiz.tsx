@@ -2,7 +2,6 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { Word } from '../types';
 import { shuffle, updateWordAfterReview } from '../utils/spaced-repetition';
 import { getWordsForExercise, markExercisePassed } from '../utils/exercise-progress';
-import { PlayButton } from './PlayButton';
 import shared from '../styles/shared.module.css';
 import s from './Quiz.module.css';
 
@@ -11,10 +10,10 @@ interface Props {
   onUpdate: (id: string, updates: Partial<Word>) => void;
 }
 
-export function Quiz({ words, onUpdate }: Props) {
+export function ReverseQuiz({ words, onUpdate }: Props) {
   const [wordsSnapshot] = useState(words);
   const [quizWords] = useState<Word[]>(() =>
-    shuffle(getWordsForExercise(wordsSnapshot, 'quiz'))
+    shuffle(getWordsForExercise(wordsSnapshot, 'reverseQuiz'))
   );
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
@@ -32,8 +31,8 @@ export function Quiz({ words, onUpdate }: Props) {
     const others = wordsSnapshot.filter((w) => w.id !== currentWord.id);
     const wrongAnswers = shuffle(others).slice(0, 3);
     return shuffle([
-      ...wrongAnswers.map((w) => ({ id: w.id, translation: w.translation })),
-      { id: currentWord.id, translation: currentWord.translation },
+      ...wrongAnswers.map((w) => ({ id: w.id, word: w.word })),
+      { id: currentWord.id, word: currentWord.word },
     ]);
   }, [currentWord, wordsSnapshot]);
 
@@ -43,7 +42,7 @@ export function Quiz({ words, onUpdate }: Props) {
       setSelected(optionId);
       const correct = optionId === currentWord.id;
       const updated = updateWordAfterReview(currentWord, correct);
-      const progressUpdate = correct ? markExercisePassed(currentWord, 'quiz') : {};
+      const progressUpdate = correct ? markExercisePassed(currentWord, 'reverseQuiz') : {};
       onUpdate(currentWord.id, { ...updated, ...progressUpdate });
       setSessionStats((prev) => ({
         correct: prev.correct + (correct ? 1 : 0),
@@ -69,7 +68,7 @@ export function Quiz({ words, onUpdate }: Props) {
   if (quizWords.length === 0) {
     return (
       <div className={s.container}>
-        <p className={shared.emptyState}>All words have passed the Quiz exercise! Reset progress on a word to practice again.</p>
+        <p className={shared.emptyState}>All words have passed Reverse Quiz. Reset a word's progress to practice again.</p>
       </div>
     );
   }
@@ -78,7 +77,7 @@ export function Quiz({ words, onUpdate }: Props) {
     return (
       <div className={s.container}>
         <div className={shared.sessionComplete}>
-          <h2>Quiz Complete!</h2>
+          <h2>Reverse Quiz Complete!</h2>
           <div className={shared.sessionStats}>
             <span className={shared.statCorrect}>{sessionStats.correct} correct</span>
             <span className={shared.statIncorrect}>{sessionStats.incorrect} incorrect</span>
@@ -102,19 +101,10 @@ export function Quiz({ words, onUpdate }: Props) {
       </div>
 
       <div className={s.question}>
-        <h3>What is the translation of:</h3>
+        <h3>Which English word matches:</h3>
         <div className={s.wordRow}>
-          <PlayButton
-            word={currentWord.word}
-            audioUrl={currentWord.audioUrl}
-            onAudioUrlResolved={(url) => onUpdate(currentWord.id, { audioUrl: url })}
-            size="md"
-          />
-          <span className={s.word}>{currentWord.word}</span>
+          <span className={s.word}>{currentWord.translation}</span>
         </div>
-        {currentWord.example && (
-          <p className={s.example}>"{currentWord.example}"</p>
-        )}
       </div>
 
       <div className={s.options}>
@@ -125,7 +115,7 @@ export function Quiz({ words, onUpdate }: Props) {
             onClick={() => handleSelect(option.id)}
             disabled={!!selected}
           >
-            {option.translation}
+            {option.word}
           </button>
         ))}
       </div>

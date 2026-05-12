@@ -64,3 +64,54 @@
   gap: 10px;
   margin-left: auto;
 }
+
+.rowLearned {
+  background: var(--correct-bg);
+}
+
+.rowLearned:hover {
+  background: var(--correct-bg);
+}
+
+.learnedBadge {
+  margin-left: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--correct);
+  color: #fff;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dotOn,
+.dotOff {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dotOn {
+  background: var(--correct);
+  box-shadow: 0 0 0 1px var(--correct);
+}
+
+.dotOff {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--border);
+}
+
+.progressCount {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}

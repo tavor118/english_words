@@ -2,14 +2,16 @@
 
 **Live:** https://tavor118.github.io/english_words/
 
-A personal app for studying English vocabulary. Add words with translations, practice with flashcards and quizzes, and track your progress — all in the browser with no backend required.
+A personal app for studying English vocabulary. Add words with translations, drill them through six practice exercises (Quiz, Reverse Quiz, Typing, Listening, Match Pairs, Scrambled), review with spaced-repetition flashcards, and track per-word progress — all in the browser with no backend required.
 
 Data is stored in **localStorage**, and the app is hosted on **GitHub Pages**.
 
 ## Table of Contents
 
 - [Features](#features)
-- [Spaced Repetition](#spaced-repetition)
+- [Learning Model](#learning-model)
+  - [Practice exercises](#practice-exercises)
+  - [Flashcards (spaced repetition)](#flashcards-spaced-repetition)
 - [Data Storage](#data-storage)
 - [Google Drive Sync (optional)](#google-drive-sync-optional)
   - [One-time setup](#one-time-setup)
@@ -27,27 +29,48 @@ Data is stored in **localStorage**, and the app is hosted on **GitHub Pages**.
 - **Auto-image** — searches Wikipedia for a relevant image
 - **Spell check** — validates words against a dictionary with suggestions
 - **Pronunciation** — play word audio from dictionary API or browser speech synthesis
-- **Flashcards** — flip-to-reveal cards with spaced repetition scheduling
-- **Quiz** — multiple-choice quiz mode (requires 4+ words)
-- **Spaced repetition** — tracks correct/incorrect answers and schedules reviews
+- **Six practice exercises** — Quiz, Reverse Quiz, Typing, Listening, Match Pairs, Scrambled Letters. A word becomes **Learned** once it has been answered correctly in all six.
+- **Flashcards** — flip-to-reveal cards with spaced-repetition scheduling, independent of the six-exercise model
+- **Per-word progress** — each word row shows a 6-dot progress indicator, with manual **Mark learned** / **Reset** controls
 - **Import/Export** — backup and restore your word list as JSON
 - **Dark mode** — follows system preference
 - **Responsive** — works on desktop and mobile
 
-## Spaced Repetition
+## Learning Model
 
-The app uses a simplified spaced repetition algorithm to prioritize words you struggle with:
+The app uses two complementary practice modes.
 
-- Each new word starts with an **interval of 1 day** and is immediately available for review
-- **Correct answer** — the interval is multiplied by **2.5x** (1d > 2.5d > 6.25d > 15.6d > ...), capped at 365 days
-- **Incorrect answer** — the interval resets to **1 day**
-- Flashcard and Quiz modes prioritize words whose **next review date** has passed, sorted by most overdue first
-- If no words are due for review, all words are included in the session
+### Practice exercises
+
+To **learn** a word, you must answer it correctly in each of these six exercises (one correct answer per exercise is enough):
+
+- **Quiz** — see the English word, pick the Ukrainian translation (multiple choice).
+- **Reverse Quiz** — see the Ukrainian translation, pick the English word (multiple choice).
+- **Typing** — see the Ukrainian translation, type the English word.
+- **Listening** — hear the word read aloud, type what you hear.
+- **Match Pairs** — tap matching English/Ukrainian cards in a grid.
+- **Scrambled** — arrange shuffled letters into the English word, given its Ukrainian translation.
+
+Rules:
+- **Passing bar** — a single correct answer marks that exercise passed for the word.
+- **Wrong answer** — no penalty; the exercise stays unpassed and you can retry in the next session. Other exercises are not affected.
+- **Learned** — once all six exercises are passed, the word is flagged `Learned`, badged on the word row, and excluded from those exercises by default. Use **Reset** on the row to bring it back, or **Mark learned** to flip a word straight to learned without practicing.
+- Each session for an exercise only shows words where that specific exercise is not yet passed.
+
+### Flashcards (spaced repetition)
+
+Flashcards are a separate review mode and follow a simplified spaced-repetition schedule. They are unrelated to the six-exercise progress — learned words still appear in Flashcards.
+
+- Each new word starts with an **interval of 1 day** and is immediately available for review.
+- **Correct (Got It)** — the interval is multiplied by **2.5x** (1d → 2.5d → 6.25d → 15.6d → …), capped at 365 days.
+- **Incorrect (Don't Know)** — the interval resets to **1 day**.
+- Flashcard sessions prioritize words whose **next review date** has passed, sorted by most overdue first. If no words are due, all words are included.
 
 Each word tracks:
-- `correctCount` / `incorrectCount` — lifetime answer stats
-- `interval` — current spacing in days
-- `nextReviewAt` — timestamp when the word becomes due again
+- `correctCount` / `incorrectCount` — lifetime answer stats (updated by Flashcards and every exercise).
+- `interval` / `nextReviewAt` — Flashcard scheduling fields.
+- `progress` — `{ quiz, reverseQuiz, typing, listening, matchPairs, scrambled }` flags.
+- `learnedAt` — timestamp set when the sixth exercise is passed.
 
 ## Data Storage
 
@@ -55,6 +78,8 @@ All words are stored in the browser's `localStorage` under the key `english-word
 
 - Use the **Export** button to download a JSON backup
 - Use the **Import** button to restore from a backup file
+
+The loader migrates legacy entries on read: any word without `progress` or `learnedAt` is silently upgraded to the current schema, so older exports and existing localStorage state continue to work without manual fix-up.
 
 ## Google Drive Sync (optional)
 
@@ -102,41 +127,45 @@ If `VITE_GOOGLE_CLIENT_ID` is not set, the app stays local-only and the sync UI 
 src/
   components/
     AddWordForm.tsx          # Form to add new words with auto-translate/image
-    AddWordForm.module.css
-    Flashcard.tsx            # Flashcard practice mode
-    Flashcard.module.css
-    Quiz.tsx                 # Multiple-choice quiz mode
-    Quiz.module.css
+    Flashcard.tsx            # Flashcard practice mode (spaced repetition)
+    Quiz.tsx                 # Practice exercise: EN word → pick UA translation
+    ReverseQuiz.tsx          # Practice exercise: UA translation → pick EN word
+    Typing.tsx               # Practice exercise: UA translation → type EN word
+    Listening.tsx            # Practice exercise: audio → type EN word
+    MatchPairs.tsx           # Practice exercise: tap matching EN/UA cards
+    Scrambled.tsx            # Practice exercise: arrange shuffled letters
     WordList.tsx             # Searchable/filterable word list
-    WordList.module.css
-    WordRow.tsx              # Individual word row in the list
-    WordRow.module.css
+    WordRow.tsx              # Word row with progress dots + learned controls
     SearchBar.tsx            # Search input with spell check indicator
-    SearchBar.module.css
     PlayButton.tsx           # Word pronunciation button
-    PlayButton.module.css
+    SyncControl.tsx          # Google Drive sync sign-in / status UI
+    *.module.css             # Scoped styles for each component
   hooks/
     useWords.ts              # CRUD hook for word management
     useSpellCheck.ts         # Debounced spell check with suggestions
+    useDriveSync.ts          # Google Drive sync state machine
   styles/
     shared.module.css        # Shared styles (buttons, inputs, tags, stats)
   types/
-    index.ts                 # TypeScript interfaces (Word, View, etc.)
+    index.ts                 # Word, ExerciseKey, View, EXERCISE_KEYS, EXERCISE_LABELS
   utils/
-    spaced-repetition.ts     # Review scheduling and shuffle
-    storage.ts               # localStorage + JSON import/export
+    spaced-repetition.ts     # Flashcard scheduling and shuffle
+    exercise-progress.ts     # Mark/reset/check the six-exercise progress on a word
+    storage.ts               # localStorage + JSON import/export + schema migration
     spellcheck.ts            # Dictionary API + Datamuse suggestions
     translate.ts             # MyMemory translation API
     image-search.ts          # Wikipedia image search
     pronunciation.ts         # Dictionary audio + speech synthesis
+    drive.ts                 # Google Drive appDataFolder client
   test/
-    components.test.tsx      # Component smoke + interaction tests
-    spaced-repetition.test.ts
-    storage.test.ts
-    helpers.ts               # Test utilities (word factory)
-    setup.ts                 # Test setup (jest-dom matchers)
-  App.tsx                    # Main app with tab navigation
-  App.module.css             # App layout styles
+    components.test.tsx        # Component smoke + interaction tests
+    spaced-repetition.test.ts  # Flashcard SR scheduling
+    exercise-progress.test.ts  # Six-exercise progress utility
+    storage.test.ts            # localStorage round-trip + schema migration
+    helpers.ts                 # Test utilities (word factory)
+    setup.ts                   # Test setup (jest-dom matchers)
+  App.tsx                    # Main app with top nav + Practice sub-nav
+  App.module.css
   index.css                  # Global styles and CSS variables
 .github/
   workflows/

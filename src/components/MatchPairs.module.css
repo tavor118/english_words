@@ -1,0 +1,77 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 32px 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  width: 100%;
+  max-width: 560px;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cell {
+  padding: 14px 16px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--card-bg);
+  backdrop-filter: blur(8px);
+  color: var(--text-h);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.cell:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.cellSelected {
+  composes: cell;
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+}
+
+.cellMatched {
+  composes: cell;
+  border-color: var(--correct);
+  background: var(--correct-bg);
+  opacity: 0.55;
+  cursor: default;
+}
+
+.cellWrong {
+  composes: cell;
+  border-color: var(--incorrect);
+  background: var(--incorrect-bg);
+  animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+@media (max-width: 640px) {
+  .grid {
+    gap: 12px;
+  }
+}

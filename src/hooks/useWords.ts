@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Word } from '../types';
+import type { Word, ExerciseProgress } from '../types';
+import { EXERCISE_KEYS } from '../types';
 import { loadWords, saveWords } from '../utils/storage';
 
 export type NewWordInput = Pick<Word, 'word' | 'translation' | 'example' | 'tags'> & {
@@ -22,6 +23,10 @@ export function useWords() {
   }, [words]);
 
   const addWord = useCallback((input: NewWordInput) => {
+    const progress = EXERCISE_KEYS.reduce((acc, key) => {
+      acc[key] = false;
+      return acc;
+    }, {} as ExerciseProgress);
     const newWord: Word = {
       ...input,
       id: crypto.randomUUID(),
@@ -34,6 +39,8 @@ export function useWords() {
       favorite: false,
       imageUrl: input.imageUrl ?? null,
       audioUrl: input.audioUrl ?? null,
+      progress,
+      learnedAt: null,
     };
     setWords((prev) => [...prev, newWord]);
   }, []);

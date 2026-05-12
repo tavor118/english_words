@@ -1,4 +1,6 @@
 import type { Word } from '../types';
+import { EXERCISE_KEYS, EXERCISE_LABELS } from '../types';
+import { isLearned, countPassed, resetProgress, markAllLearned } from '../utils/exercise-progress';
 import { PlayButton } from './PlayButton';
 import shared from '../styles/shared.module.css';
 import s from './WordRow.module.css';
@@ -10,8 +12,11 @@ interface Props {
 }
 
 export function WordRow({ word, onDelete, onUpdate }: Props) {
+  const learned = isLearned(word);
+  const passed = countPassed(word);
+
   return (
-    <div className={s.row}>
+    <div className={`${s.row} ${learned ? s.rowLearned : ''}`}>
       {word.imageUrl ? (
         <img src={word.imageUrl} alt={word.word} className={s.image} />
       ) : (
@@ -24,7 +29,7 @@ export function WordRow({ word, onDelete, onUpdate }: Props) {
             onClick={() => onUpdate(word.id, { favorite: !word.favorite })}
             title={word.favorite ? 'Remove from favorites' : 'Add to favorites'}
           >
-            {word.favorite ? '\u2605' : '\u2606'}
+            {word.favorite ? '★' : '☆'}
           </button>
           <PlayButton
             word={word.word}
@@ -34,6 +39,7 @@ export function WordRow({ word, onDelete, onUpdate }: Props) {
           <strong className={shared.wordText}>{word.word}</strong>
           <span className={s.sep}>—</span>
           <span className={shared.wordTranslation}>{word.translation}</span>
+          {learned && <span className={s.learnedBadge}>Learned</span>}
         </div>
         <div className={s.meta}>
           {word.example && <span className={shared.wordExample}>"{word.example}"</span>}
@@ -44,9 +50,36 @@ export function WordRow({ word, onDelete, onUpdate }: Props) {
               ))}
             </div>
           )}
+          <div className={s.progress} title={`${passed} of ${EXERCISE_KEYS.length} exercises passed`}>
+            {EXERCISE_KEYS.map((key) => (
+              <span
+                key={key}
+                className={word.progress[key] ? s.dotOn : s.dotOff}
+                title={`${EXERCISE_LABELS[key]}: ${word.progress[key] ? 'passed' : 'not passed yet'}`}
+              />
+            ))}
+            <span className={s.progressCount}>{passed}/{EXERCISE_KEYS.length}</span>
+          </div>
           <div className={s.right}>
             <span className={shared.statCorrect}>{word.correctCount}</span>
             <span className={shared.statIncorrect}>{word.incorrectCount}</span>
+            {learned ? (
+              <button
+                className={shared.btnDelete}
+                onClick={() => onUpdate(word.id, resetProgress())}
+                title="Reset learned status"
+              >
+                Reset
+              </button>
+            ) : (
+              <button
+                className={shared.btnDelete}
+                onClick={() => onUpdate(word.id, markAllLearned())}
+                title="Mark as learned"
+              >
+                Mark learned
+              </button>
+            )}
             <button
               className={shared.btnDelete}
               onClick={() => onDelete(word.id)}

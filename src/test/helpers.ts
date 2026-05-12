@@ -1,4 +1,5 @@
 import type { Word } from '../types';
+import { emptyProgress } from '../utils/exercise-progress';
 
 let idCounter = 0;
 
@@ -19,6 +20,8 @@ export function createWord(overrides: Partial<Word> = {}): Word {
     favorite: false,
     imageUrl: null,
     audioUrl: null,
+    progress: emptyProgress(),
+    learnedAt: null,
     ...overrides,
   };
 }

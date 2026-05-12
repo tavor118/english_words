@@ -1,0 +1,112 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 32px 0;
+}
+
+.question {
+  text-align: center;
+}
+
+.question h3 {
+  margin: 0 0 10px;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.translation {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-h);
+  letter-spacing: -0.02em;
+}
+
+.slots {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 12px;
+  border-radius: 12px;
+  transition: background 0.2s ease;
+}
+
+.slotsCorrect {
+  composes: slots;
+  background: var(--correct-bg);
+}
+
+.slotsIncorrect {
+  composes: slots;
+  background: var(--incorrect-bg);
+}
+
+.slot {
+  min-width: 36px;
+  height: 44px;
+  padding: 0 6px;
+  border-bottom: 2px solid var(--border);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: lowercase;
+}
+
+.tiles {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 520px;
+}
+
+.tile {
+  min-width: 44px;
+  height: 44px;
+  padding: 0 10px;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  background: var(--card-bg);
+  backdrop-filter: blur(8px);
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-h);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: lowercase;
+}
+
+.tile:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  transform: translateY(-1px);
+}
+
+.tileUsed {
+  composes: tile;
+  opacity: 0.3;
+  cursor: default;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.reveal {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.reveal strong {
+  color: var(--text-h);
+}

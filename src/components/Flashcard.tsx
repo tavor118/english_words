@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import type { Word } from '../types';
 import { getWordsForReview, shuffle, updateWordAfterReview } from '../utils/spaced-repetition';
 import { PlayButton } from './PlayButton';
@@ -18,8 +18,22 @@ export function Flashcard({ words, onUpdate }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [sessionStats, setSessionStats] = useState({ correct: 0, incorrect: 0 });
+  const gotItBtnRef = useRef<HTMLButtonElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const currentWord = reviewWords[currentIndex];
+
+  useEffect(() => {
+    if (flipped) gotItBtnRef.current?.focus();
+    else cardRef.current?.focus();
+  }, [flipped, currentIndex]);
+
+  const handleCardKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setFlipped((f) => !f);
+    }
+  };
 
   const handleAnswer = useCallback(
     (correct: boolean) => {
@@ -77,8 +91,14 @@ export function Flashcard({ words, onUpdate }: Props) {
 
       <div
         key={currentIndex}
+        ref={cardRef}
         className={`${s.card} ${flipped ? s.flipped : ''}`}
         onClick={() => setFlipped((f) => !f)}
+        onKeyDown={handleCardKeyDown}
+        role="button"
+        tabIndex={0}
+        aria-pressed={flipped}
+        aria-label={flipped ? 'Flip card to word' : 'Flip card to translation'}
       >
         <div className={s.front}>
           <span className={s.label}>Word</span>
@@ -89,7 +109,7 @@ export function Flashcard({ words, onUpdate }: Props) {
             size="md"
           />
           <span className={s.text}>{currentWord.word}</span>
-          <span className={s.hint}>Click to flip</span>
+          <span className={s.hint}>Click or press Enter to flip</span>
         </div>
         <div className={s.back}>
           <span className={s.label}>Translation</span>
@@ -108,7 +128,7 @@ export function Flashcard({ words, onUpdate }: Props) {
           <button className={shared.btnIncorrect} onClick={() => handleAnswer(false)}>
             Don't Know
           </button>
-          <button className={shared.btnCorrect} onClick={() => handleAnswer(true)}>
+          <button ref={gotItBtnRef} className={shared.btnCorrect} onClick={() => handleAnswer(true)}>
             Got It!
           </button>
         </div>

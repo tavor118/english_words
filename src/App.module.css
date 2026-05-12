@@ -61,6 +61,46 @@
   color: #fff;
 }
 
+.subNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin: 20px auto 0;
+  padding: 0 8px;
+}
+
+.subNavBtn {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.subNavBtn:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.subNavBtnActive {
+  composes: subNavBtn;
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.subNavBtnActive:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
 @media (max-width: 640px) {
   .app {
     padding: 0 16px 40px;
