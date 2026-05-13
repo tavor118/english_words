@@ -146,9 +146,37 @@ If `VITE_GOOGLE_CLIENT_ID` is not set, the app stays local-only and the sync UI 
 
 ### How sync works
 
-- On first sign-in, if the Drive file already exists it is downloaded and replaces the local list. If not, the local list is uploaded.
-- Every change is debounced (~2 s) and uploaded.
-- Conflict policy is last-write-wins. If you edit on two devices while offline, the most recent upload wins.
+**Storage location.** The word list lives in Drive's hidden `appDataFolder` as `words.json`. The OAuth scope is `drive.appdata` only — the app can't see anything else in your Drive, and the file does not show up in the Drive UI. Revoke access anytime from your Google account settings.
+
+**Initial sync (per device).** The first time you sign in on a device, the hook runs an initial sync:
+- If `words.json` already exists in Drive, the remote copy is downloaded and **merged** with the local list — see merge rules below. If the merge result differs from the remote copy, it is uploaded back so Drive matches.
+- If it doesn't exist, the local list is uploaded and becomes the new remote copy.
+
+The `modifiedTime` returned by Drive is stored locally so subsequent uploads can be deduplicated.
+
+**Merge rules.** Words are matched by `id` (UUID).
+- **Local-only or remote-only** → kept as-is. Local order is preserved; remote-only entries are appended at the end.
+- **Same `id` on both sides** → field-level merge so no progress from either device is lost:
+  - `progress` (per exercise): logical OR — if either device passed the exercise, the merged word has it passed.
+  - `correctCount`, `incorrectCount`, `interval`, `nextReviewAt`: `max` of the two values.
+  - `lastReviewedAt`: latest non-null timestamp.
+  - `learnedAt`: earliest non-null timestamp (the first time the word was learned anywhere).
+  - `favorite`: logical OR.
+  - `tags`: set union.
+  - `createdAt`: earlier of the two.
+  - `word`, `translation`, `example`, `imageUrl`, `audioUrl`: prefer the non-empty/non-null value; if both are set, the local value wins.
+
+**Auto-resume across reloads.** A flag (`english-words-drive-signed-in`) in `localStorage` remembers that you're signed in. On every page load the app re-attempts the initial sync silently (no popup). The sync runs **exactly once per session** — guarded by an internal ref so that updating local state from a download cannot re-trigger it. Signing out clears the flag and the cached `modifiedTime`.
+
+**Ongoing uploads.** After the initial sync, any change to the word list is debounced for **~2 s** and then uploaded. Uploads are deduplicated by JSON comparison, so re-saving the same data is a no-op. If the access token has silently expired by the time the timer fires, the upload is skipped — the next change will retry rather than surface a fresh consent popup.
+
+**Status states.** The sync UI surfaces one of: `disabled` (no client ID configured), `signed-out`, `syncing`, `idle`, or `error` (with the message attached).
+
+**Conflict policy.** Last-write-wins **after the initial sync**. Once a device has merged-and-uploaded on sign-in, subsequent debounced uploads simply overwrite the remote file in full — there is no further merge per change. If two devices are both signed in and actively editing, whichever finishes uploading last wins for that round. Use **Export** before any risky operation if you want a manual backup.
+
+**localStorage keys used by sync.**
+- `english-words-drive-signed-in` — `'1'` if the user has authorized this app on this device.
+- `english-words-drive-modified` — last known `modifiedTime` from Drive.
 
 ## Tech Stack
 

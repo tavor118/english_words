@@ -43,6 +43,48 @@ export function migrateWords(words: Partial<Word>[]): Word[] {
   return words.map(migrateWord);
 }
 
+function mergeWord(a: Word, b: Word): Word {
+  const progress = EXERCISE_KEYS.reduce((acc, key) => {
+    acc[key] = a.progress[key] || b.progress[key];
+    return acc;
+  }, {} as ExerciseProgress);
+  const learnedTimes = [a.learnedAt, b.learnedAt].filter((t): t is number => t != null);
+  const lastReviewed = Math.max(a.lastReviewedAt ?? 0, b.lastReviewedAt ?? 0);
+  return {
+    id: a.id,
+    word: a.word || b.word,
+    translation: a.translation || b.translation,
+    example: a.example || b.example,
+    tags: Array.from(new Set([...a.tags, ...b.tags])),
+    createdAt: Math.min(a.createdAt, b.createdAt),
+    correctCount: Math.max(a.correctCount, b.correctCount),
+    incorrectCount: Math.max(a.incorrectCount, b.incorrectCount),
+    lastReviewedAt: lastReviewed > 0 ? lastReviewed : null,
+    nextReviewAt: Math.max(a.nextReviewAt, b.nextReviewAt),
+    interval: Math.max(a.interval, b.interval),
+    favorite: a.favorite || b.favorite,
+    imageUrl: a.imageUrl ?? b.imageUrl,
+    audioUrl: a.audioUrl ?? b.audioUrl,
+    progress,
+    learnedAt: learnedTimes.length ? Math.min(...learnedTimes) : null,
+  };
+}
+
+export function mergeWordLists(local: Word[], remote: Word[]): Word[] {
+  const remoteById = new Map(remote.map((w) => [w.id, w]));
+  const seen = new Set<string>();
+  const merged: Word[] = [];
+  for (const w of local) {
+    const r = remoteById.get(w.id);
+    merged.push(r ? mergeWord(w, r) : w);
+    seen.add(w.id);
+  }
+  for (const w of remote) {
+    if (!seen.has(w.id)) merged.push(w);
+  }
+  return merged;
+}
+
 export function loadWords(): Word[] {
   const data = localStorage.getItem(STORAGE_KEY);
   if (!data) return [];

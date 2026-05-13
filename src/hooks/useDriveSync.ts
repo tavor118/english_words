@@ -8,7 +8,7 @@ import {
   signOut as driveSignOut,
   uploadWords,
 } from '../utils/drive-sync';
-import { migrateWords } from '../utils/storage';
+import { mergeWordLists, migrateWords } from '../utils/storage';
 
 export type SyncStatus = 'disabled' | 'signed-out' | 'syncing' | 'idle' | 'error';
 
@@ -27,8 +27,14 @@ export function useDriveSync({ words, replaceWords }: Args) {
   const [error, setError] = useState<string | null>(null);
   const [signedIn, setSignedIn] = useState(false);
   const initialSyncDone = useRef(false);
+  const initialSyncStarted = useRef(false);
   const uploadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastUploadedJson = useRef<string | null>(null);
+  const wordsRef = useRef(words);
+
+  useEffect(() => {
+    wordsRef.current = words;
+  }, [words]);
 
   const performInitialSync = useCallback(async () => {
     setStatus('syncing');
@@ -37,13 +43,21 @@ export function useDriveSync({ words, replaceWords }: Args) {
       const remote = await downloadWords();
       if (remote) {
         const migrated = migrateWords(remote.words);
-        replaceWords(migrated);
-        localStorage.setItem(LAST_MODIFIED_KEY, remote.modifiedTime);
-        lastUploadedJson.current = JSON.stringify(migrated);
+        const merged = mergeWordLists(wordsRef.current, migrated);
+        const mergedJson = JSON.stringify(merged);
+        replaceWords(merged);
+        if (mergedJson !== JSON.stringify(migrated)) {
+          const modifiedTime = await uploadWords(merged);
+          localStorage.setItem(LAST_MODIFIED_KEY, modifiedTime);
+        } else {
+          localStorage.setItem(LAST_MODIFIED_KEY, remote.modifiedTime);
+        }
+        lastUploadedJson.current = mergedJson;
       } else {
-        const modifiedTime = await uploadWords(words);
+        const current = wordsRef.current;
+        const modifiedTime = await uploadWords(current);
         localStorage.setItem(LAST_MODIFIED_KEY, modifiedTime);
-        lastUploadedJson.current = JSON.stringify(words);
+        lastUploadedJson.current = JSON.stringify(current);
       }
       initialSyncDone.current = true;
       setStatus('idle');
@@ -51,7 +65,7 @@ export function useDriveSync({ words, replaceWords }: Args) {
       setError(e instanceof Error ? e.message : String(e));
       setStatus('error');
     }
-  }, [words, replaceWords]);
+  }, [replaceWords]);
 
   const signIn = useCallback(async () => {
     setError(null);
@@ -59,6 +73,7 @@ export function useDriveSync({ words, replaceWords }: Args) {
     try {
       await driveSignIn();
       localStorage.setItem(SIGNED_IN_KEY, '1');
+      initialSyncStarted.current = true;
       setSignedIn(true);
       await performInitialSync();
     } catch (e) {
@@ -72,6 +87,7 @@ export function useDriveSync({ words, replaceWords }: Args) {
     localStorage.removeItem(SIGNED_IN_KEY);
     localStorage.removeItem(LAST_MODIFIED_KEY);
     initialSyncDone.current = false;
+    initialSyncStarted.current = false;
     lastUploadedJson.current = null;
     setSignedIn(false);
     setStatus('signed-out');
@@ -81,6 +97,8 @@ export function useDriveSync({ words, replaceWords }: Args) {
   useEffect(() => {
     if (!configured) return;
     if (localStorage.getItem(SIGNED_IN_KEY) !== '1') return;
+    if (initialSyncStarted.current) return;
+    initialSyncStarted.current = true;
     setSignedIn(true);
     setStatus('syncing');
     performInitialSync();
