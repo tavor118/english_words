@@ -66,16 +66,25 @@ describe('AddWordForm', () => {
     );
   });
 
-  it('shows existing word notice when word already exists', () => {
+  it('shows the existing-vocabulary notice when the exact en/ua pair already exists', () => {
     const existing = createWord({ word: 'hello', translation: 'привіт' });
     render(<AddWordForm words={[existing]} initialWord="hello" onAdd={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText(/translation/i), { target: { value: 'привіт' } });
     expect(screen.getByText('Already in your vocabulary')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Add Word' })).not.toBeInTheDocument();
   });
 
-  it('does not show submit button when word already exists', () => {
+  it('allows adding a different translation for an existing english word', () => {
     const existing = createWord({ word: 'hello', translation: 'привіт' });
-    render(<AddWordForm words={[existing]} initialWord="hello" onAdd={vi.fn()} />);
-    expect(screen.queryByRole('button', { name: 'Add Word' })).not.toBeInTheDocument();
+    const onAdd = vi.fn();
+    render(<AddWordForm words={[existing]} initialWord="hello" onAdd={onAdd} />);
+    fireEvent.change(screen.getByLabelText(/translation/i), { target: { value: 'вітаю' } });
+
+    expect(screen.getByText(/already in vocabulary as/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add Word' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add Word' }));
+    expect(onAdd).toHaveBeenCalledWith(expect.objectContaining({ word: 'hello', translation: 'вітаю' }));
   });
 });
 
@@ -85,6 +94,7 @@ describe('WordList', () => {
     onUpdate: vi.fn(),
     onExport: vi.fn(),
     onImport: vi.fn(),
+    onLoadDemo: vi.fn(() => Promise.resolve(0)),
     onNavigateToAdd: vi.fn(),
   };
 
@@ -117,6 +127,28 @@ describe('WordList', () => {
     render(<WordList words={[createWord()]} {...defaultProps} onExport={onExport} />);
     fireEvent.click(screen.getByRole('button', { name: 'Export' }));
     expect(onExport).toHaveBeenCalled();
+  });
+
+  it('shows a confirmation modal when Demo is clicked and calls onLoadDemo on confirm', async () => {
+    const onLoadDemo = vi.fn(() => Promise.resolve(10));
+    render(<WordList words={[]} {...defaultProps} onLoadDemo={onLoadDemo} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Demo' }));
+    expect(screen.getByText(/Load demo words/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add demo words' }));
+    expect(onLoadDemo).toHaveBeenCalled();
+    expect(await screen.findByText(/Added 10 demo words/i)).toBeInTheDocument();
+  });
+
+  it('reports zero additions when all demo pairs already exist', async () => {
+    const onLoadDemo = vi.fn(() => Promise.resolve(0));
+    render(<WordList words={[]} {...defaultProps} onLoadDemo={onLoadDemo} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Demo' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add demo words' }));
+
+    expect(await screen.findByText(/already in your vocabulary/i)).toBeInTheDocument();
   });
 });
 

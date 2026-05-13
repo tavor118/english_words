@@ -37,6 +37,16 @@
   margin-top: 4px;
 }
 
+.altNotice {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text-h);
+  background: var(--primary-soft);
+  border-left: 3px solid var(--primary);
+  border-radius: var(--radius-xs);
+}
+
 .existingLabel {
   font-size: 13px;
   font-weight: 600;

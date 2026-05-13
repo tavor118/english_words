@@ -17,6 +17,8 @@ import { Marathon } from './components/Marathon';
 import { SyncControl } from './components/SyncControl';
 import { DailyProgressBar } from './components/DailyProgressBar';
 import { exportWords, importWords } from './utils/storage';
+import { DEMO_WORDS } from './utils/demo-data';
+import { findImage } from './utils/image-search';
 import s from './App.module.css';
 
 function App() {
@@ -25,7 +27,7 @@ function App() {
   const [prefillWord, setPrefillWord] = useState('');
   const [sessionKey, setSessionKey] = useState(0);
   const stableId = useId();
-  const { words, addWord, updateWord, deleteWord, replaceWords } = useWords();
+  const { words, addWord, addWords, updateWord, deleteWord, replaceWords } = useWords();
   const sync = useDriveSync({ words, replaceWords });
   const daily = useDailyProgress();
 
@@ -36,6 +38,13 @@ function App() {
     } catch {
       alert('Failed to import file. Please check the format.');
     }
+  };
+
+  const handleLoadDemo = async (): Promise<number> => {
+    const withImages = await Promise.all(
+      DEMO_WORDS.map(async (w) => ({ ...w, imageUrl: await findImage(w.word) }))
+    );
+    return addWords(withImages);
   };
 
   const startSession = (next: View) => {
@@ -107,6 +116,7 @@ function App() {
             onUpdate={updateWord}
             onExport={() => exportWords(words)}
             onImport={handleImport}
+            onLoadDemo={handleLoadDemo}
             onNavigateToAdd={(word) => { setPrefillWord(word); setView('add'); }}
           />
         )}

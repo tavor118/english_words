@@ -30,10 +30,17 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
     return () => { mountedRef.current = false; };
   }, []);
 
-  const existingWord = useMemo(() => {
-    const trimmed = word.trim().toLowerCase();
-    if (!trimmed) return null;
-    return words.find((w) => w.word.toLowerCase() === trimmed) ?? null;
+  const existingExactPair = useMemo(() => {
+    const w = word.trim().toLowerCase();
+    const t = translation.trim().toLowerCase();
+    if (!w || !t) return null;
+    return words.find((wd) => wd.word.toLowerCase() === w && wd.translation.toLowerCase() === t) ?? null;
+  }, [word, translation, words]);
+
+  const sameEnglishEntries = useMemo(() => {
+    const w = word.trim().toLowerCase();
+    if (!w) return [];
+    return words.filter((wd) => wd.word.toLowerCase() === w);
   }, [word, words]);
 
   const fetchTranslation = (text: string) => {
@@ -100,7 +107,7 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!word.trim() || !translation.trim() || existingWord) return;
+    if (!word.trim() || !translation.trim() || existingExactPair) return;
 
     onAdd({
       word: word.trim(),
@@ -158,33 +165,38 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
         )}
       </div>
 
-      {existingWord ? (
+      {existingExactPair ? (
         <div className={s.existingNotice}>
           <div className={s.existingLabel}>Already in your vocabulary</div>
           <div className={s.existingCard}>
-            {existingWord.imageUrl && (
-              <img src={existingWord.imageUrl} alt={existingWord.word} className={shared.wordImage} />
+            {existingExactPair.imageUrl && (
+              <img src={existingExactPair.imageUrl} alt={existingExactPair.word} className={shared.wordImage} />
             )}
-            <strong className={s.existingCardText}>{existingWord.word}</strong>
-            <p className={s.existingCardTranslation}>{existingWord.translation}</p>
-            {existingWord.example && (
-              <p className={s.existingCardExample}>"{existingWord.example}"</p>
+            <strong className={s.existingCardText}>{existingExactPair.word}</strong>
+            <p className={s.existingCardTranslation}>{existingExactPair.translation}</p>
+            {existingExactPair.example && (
+              <p className={s.existingCardExample}>"{existingExactPair.example}"</p>
             )}
-            {existingWord.tags.length > 0 && (
+            {existingExactPair.tags.length > 0 && (
               <div className={shared.wordTags}>
-                {existingWord.tags.map((tag) => (
+                {existingExactPair.tags.map((tag) => (
                   <span key={tag} className={shared.tag}>{tag}</span>
                 ))}
               </div>
             )}
             <div className={`${shared.wordStats} ${s.existingCardStats}`}>
-              <span className={shared.statCorrect}>{existingWord.correctCount}</span>
-              <span className={shared.statIncorrect}>{existingWord.incorrectCount}</span>
+              <span className={shared.statCorrect}>{existingExactPair.correctCount}</span>
+              <span className={shared.statIncorrect}>{existingExactPair.incorrectCount}</span>
             </div>
           </div>
         </div>
       ) : (
         <>
+          {sameEnglishEntries.length > 0 && (
+            <div className={s.altNotice}>
+              Already in vocabulary as <strong>{sameEnglishEntries.map((e) => e.translation).join(', ')}</strong>. You can add another translation.
+            </div>
+          )}
           {imageUrl && (
             <div className={s.imagePreview}>
               <div className={s.imagePreviewWrapper}>

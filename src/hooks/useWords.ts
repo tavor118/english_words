@@ -22,12 +22,12 @@ export function useWords() {
     }
   }, [words]);
 
-  const addWord = useCallback((input: NewWordInput) => {
+  const buildWord = (input: NewWordInput): Word => {
     const progress = EXERCISE_KEYS.reduce((acc, key) => {
       acc[key] = false;
       return acc;
     }, {} as ExerciseProgress);
-    const newWord: Word = {
+    return {
       ...input,
       id: crypto.randomUUID(),
       createdAt: Date.now(),
@@ -42,8 +42,31 @@ export function useWords() {
       progress,
       learnedAt: null,
     };
-    setWords((prev) => [...prev, newWord]);
+  };
+
+  const pairKey = (word: string, translation: string) =>
+    `${word.trim().toLowerCase()}|${translation.trim().toLowerCase()}`;
+
+  const addWord = useCallback((input: NewWordInput) => {
+    setWords((prev) => {
+      const existing = new Set(prev.map((w) => pairKey(w.word, w.translation)));
+      if (existing.has(pairKey(input.word, input.translation))) return prev;
+      return [...prev, buildWord(input)];
+    });
   }, []);
+
+  const addWords = useCallback((inputs: NewWordInput[]): number => {
+    const existing = new Set(words.map((w) => pairKey(w.word, w.translation)));
+    const fresh: Word[] = [];
+    for (const input of inputs) {
+      const key = pairKey(input.word, input.translation);
+      if (existing.has(key)) continue;
+      existing.add(key);
+      fresh.push(buildWord(input));
+    }
+    if (fresh.length > 0) setWords((prev) => [...prev, ...fresh]);
+    return fresh.length;
+  }, [words]);
 
   const updateWord = useCallback((id: string, updates: Partial<Word>) => {
     setWords((prev) => prev.map((w) => (w.id === id ? { ...w, ...updates } : w)));
@@ -58,5 +81,5 @@ export function useWords() {
     saveWords(newWords);
   }, []);
 
-  return { words, addWord, updateWord, deleteWord, replaceWords };
+  return { words, addWord, addWords, updateWord, deleteWord, replaceWords };
 }

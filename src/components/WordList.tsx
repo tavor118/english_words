@@ -3,6 +3,8 @@ import type { Word } from '../types';
 import { useSpellCheck } from '../hooks/useSpellCheck';
 import { SearchBar } from './SearchBar';
 import { WordRow } from './WordRow';
+import { Modal } from './Modal';
+import { DEMO_WORDS } from '../utils/demo-data';
 import shared from '../styles/shared.module.css';
 import s from './WordList.module.css';
 
@@ -12,10 +14,14 @@ interface Props {
   onUpdate: (id: string, updates: Partial<Word>) => void;
   onExport: () => void;
   onImport: (file: File) => void;
+  onLoadDemo: () => Promise<number>;
   onNavigateToAdd: (word: string) => void;
 }
 
-export function WordList({ words, onDelete, onUpdate, onExport, onImport, onNavigateToAdd }: Props) {
+export function WordList({ words, onDelete, onUpdate, onExport, onImport, onLoadDemo, onNavigateToAdd }: Props) {
+  const [showDemoModal, setShowDemoModal] = useState(false);
+  const [loadingDemo, setLoadingDemo] = useState(false);
+  const [demoResult, setDemoResult] = useState<number | null>(null);
   const [search, setSearch] = useState('');
   const [filterTag, setFilterTag] = useState('');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
@@ -57,8 +63,46 @@ export function WordList({ words, onDelete, onUpdate, onExport, onImport, onNavi
               hidden
             />
           </label>
+          <button className={shared.btnSecondary} onClick={() => setShowDemoModal(true)}>
+            Demo
+          </button>
         </div>
       </div>
+
+      {showDemoModal && (
+        <Modal
+          title="Load demo words?"
+          confirmLabel={loadingDemo ? 'Loading images…' : 'Add demo words'}
+          onClose={() => { if (!loadingDemo) setShowDemoModal(false); }}
+          onConfirm={async () => {
+            if (loadingDemo) return;
+            setLoadingDemo(true);
+            const added = await onLoadDemo();
+            setLoadingDemo(false);
+            setShowDemoModal(false);
+            setDemoResult(added);
+          }}
+        >
+          <p>This will add {DEMO_WORDS.length} sample words to your vocabulary, each tagged <strong>demo</strong> so you can filter or delete them later.</p>
+          <p>Words already present (same English + Ukrainian pair) will be skipped — clicking Demo a second time does nothing.</p>
+        </Modal>
+      )}
+
+      {demoResult !== null && (
+        <Modal
+          title={demoResult > 0 ? 'Demo words added' : 'Nothing to add'}
+          confirmLabel="OK"
+          cancelLabel="Close"
+          onClose={() => setDemoResult(null)}
+          onConfirm={() => setDemoResult(null)}
+        >
+          <p>
+            {demoResult > 0
+              ? `Added ${demoResult} demo word${demoResult === 1 ? '' : 's'}. Filter by the "demo" tag to find them.`
+              : 'All demo pairs were already in your vocabulary.'}
+          </p>
+        </Modal>
+      )}
 
       <div className={s.filters}>
         <SearchBar
