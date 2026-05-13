@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import type { Word } from '../types';
 import { shuffle, updateWordAfterReview } from '../utils/spaced-repetition';
 import { getWordsForExercise, markExercisePassed } from '../utils/exercise-progress';
+import { playWord } from '../utils/pronunciation';
 import shared from '../styles/shared.module.css';
 import s from './Scrambled.module.css';
 
@@ -191,6 +192,7 @@ export function Scrambled({ words, onUpdate, onAnswer, limit, onComplete }: Prop
         correct: prev.correct + (correct ? 1 : 0),
         incorrect: prev.incorrect + (correct ? 0 : 1),
       }));
+      playWord(currentWord.word, currentWord.audioUrl, (url) => onUpdate(currentWord.id, { audioUrl: url }));
       if (correct) onAnswer?.();
     },
     [currentWord, onUpdate, onAnswer]

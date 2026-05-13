@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { Word } from '../types';
 import { shuffle, updateWordAfterReview } from '../utils/spaced-repetition';
 import { getWordsForExercise, markExercisePassed } from '../utils/exercise-progress';
+import { playWord } from '../utils/pronunciation';
 import { PlayButton } from './PlayButton';
 import shared from '../styles/shared.module.css';
 import s from './Quiz.module.css';
@@ -24,6 +25,7 @@ export function Quiz({ words, onUpdate, onAnswer, limit, onComplete }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
   const [sessionStats, setSessionStats] = useState({ correct: 0, incorrect: 0 });
   const nextBtnRef = useRef<HTMLButtonElement>(null);
+  const lastPlayedIndexRef = useRef(-1);
 
   const currentWord = quizWords[currentIndex];
 
@@ -57,6 +59,14 @@ export function Quiz({ words, onUpdate, onAnswer, limit, onComplete }: Props) {
   useEffect(() => {
     if (selected) nextBtnRef.current?.focus();
   }, [selected]);
+
+  useEffect(() => {
+    if (!currentWord) return;
+    if (lastPlayedIndexRef.current === currentIndex) return;
+    lastPlayedIndexRef.current = currentIndex;
+    playWord(currentWord.word, currentWord.audioUrl, (url) => onUpdate(currentWord.id, { audioUrl: url }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {

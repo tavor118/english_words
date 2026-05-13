@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import type { Word } from '../types';
 import { shuffle, updateWordAfterReview } from '../utils/spaced-repetition';
 import { getWordsForExercise, markExercisePassed } from '../utils/exercise-progress';
+import { playWord } from '../utils/pronunciation';
 import shared from '../styles/shared.module.css';
 import s from './Typing.module.css';
 
@@ -52,6 +53,7 @@ export function Typing({ words, onUpdate, onAnswer, limit, onComplete }: Props) 
         correct: prev.correct + (correct ? 1 : 0),
         incorrect: prev.incorrect + (correct ? 0 : 1),
       }));
+      playWord(currentWord.word, currentWord.audioUrl, (url) => onUpdate(currentWord.id, { audioUrl: url }));
       if (correct) onAnswer?.();
     },
     [verdict, currentWord, input, onUpdate, onAnswer]

@@ -43,3 +43,21 @@ export async function pronounce(word: string): Promise<void> {
     speakWord(word);
   }
 }
+
+export async function playWord(
+  word: string,
+  cachedUrl: string | null | undefined,
+  onCache?: (url: string) => void
+): Promise<void> {
+  if (cachedUrl) {
+    playAudio(cachedUrl);
+    return;
+  }
+  const url = await getAudioUrl(word);
+  if (url) {
+    playAudio(url);
+    onCache?.(url);
+  } else {
+    speakWord(word);
+  }
+}

@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { Word } from '../types';
 import { getWordsForReview, shuffle, updateWordAfterReview } from '../utils/spaced-repetition';
+import { playWord } from '../utils/pronunciation';
 import { PlayButton } from './PlayButton';
 import shared from '../styles/shared.module.css';
 import s from './Flashcard.module.css';
@@ -22,6 +23,7 @@ export function Flashcard({ words, onUpdate, onAnswer }: Props) {
   const gotItBtnRef = useRef<HTMLButtonElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const restartBtnRef = useRef<HTMLButtonElement>(null);
+  const lastPlayedIndexRef = useRef(-1);
 
   const currentWord = reviewWords[currentIndex];
 
@@ -33,6 +35,14 @@ export function Flashcard({ words, onUpdate, onAnswer }: Props) {
     if (flipped) gotItBtnRef.current?.focus();
     else cardRef.current?.focus();
   }, [flipped, currentIndex, reviewWords.length]);
+
+  useEffect(() => {
+    if (!currentWord) return;
+    if (lastPlayedIndexRef.current === currentIndex) return;
+    lastPlayedIndexRef.current = currentIndex;
+    playWord(currentWord.word, currentWord.audioUrl, (url) => onUpdate(currentWord.id, { audioUrl: url }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex]);
 
   const handleCardKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {

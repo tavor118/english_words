@@ -33,10 +33,12 @@ export function Listening({ words, onUpdate, onAnswer, limit, onComplete }: Prop
   const nextBtnRef = useRef<HTMLButtonElement>(null);
 
   const currentWord = queue[currentIndex];
+  const lastPlayedIndexRef = useRef(-1);
 
   useEffect(() => {
     inputRef.current?.focus();
-    if (currentWord) {
+    if (currentWord && lastPlayedIndexRef.current !== currentIndex) {
+      lastPlayedIndexRef.current = currentIndex;
       pronounce(currentWord.word).catch(() => {});
     }
   }, [currentIndex, currentWord]);

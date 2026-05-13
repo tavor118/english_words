@@ -31,7 +31,7 @@ Data is stored in **localStorage**, and the app is hosted on **GitHub Pages**.
 - **Auto-translate** — automatically fetches Ukrainian translation when adding a word
 - **Auto-image** — searches Wikipedia for a relevant image
 - **Spell check** — validates words against a dictionary with suggestions
-- **Pronunciation** — play word audio from dictionary API or browser speech synthesis
+- **Pronunciation** — play word audio from dictionary API or browser speech synthesis. Auto-plays on Flashcards and Quiz (where the English word is shown); manual button elsewhere
 - **Six practice exercises** — Quiz, Reverse Quiz, Typing, Listening, Match Pairs, Scrambled Letters. A word becomes **Learned** once it has been answered correctly in all six.
 - **Practice and Marathon tabs** — drill one exercise at a time, or run a **Marathon** session that cycles through all six (up to 10 words each).
 - **Flashcards** — flip-to-reveal cards with spaced-repetition scheduling, independent of the six-exercise model
