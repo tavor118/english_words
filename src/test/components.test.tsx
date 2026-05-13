@@ -598,6 +598,48 @@ describe('exercise points', () => {
   });
 });
 
+describe('WordRow edit', () => {
+  it('switches to edit form and saves changes', () => {
+    const word = createWord({ word: 'hello', translation: 'привіт', example: 'hi', tags: ['greeting'] });
+    const onUpdate = vi.fn();
+    render(<WordRow word={word} onDelete={vi.fn()} onUpdate={onUpdate} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+
+    const wordInput = screen.getByLabelText('Word') as HTMLInputElement;
+    const translationInput = screen.getByLabelText('Translation') as HTMLInputElement;
+    expect(wordInput.value).toBe('hello');
+    expect(translationInput.value).toBe('привіт');
+
+    fireEvent.change(wordInput, { target: { value: 'hi' } });
+    fireEvent.change(translationInput, { target: { value: 'привітик' } });
+    fireEvent.change(screen.getByLabelText('Tags'), { target: { value: 'greeting, casual' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(onUpdate).toHaveBeenCalledWith(
+      word.id,
+      expect.objectContaining({
+        word: 'hi',
+        translation: 'привітик',
+        tags: ['greeting', 'casual'],
+      })
+    );
+  });
+
+  it('cancel discards changes and exits edit mode', () => {
+    const word = createWord({ word: 'hello', translation: 'привіт' });
+    const onUpdate = vi.fn();
+    render(<WordRow word={word} onDelete={vi.fn()} onUpdate={onUpdate} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+    fireEvent.change(screen.getByLabelText('Word'), { target: { value: 'changed' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(onUpdate).not.toHaveBeenCalled();
+    expect(screen.getByText('hello')).toBeInTheDocument();
+  });
+});
+
 describe('WordRow learned state', () => {
   it('renders a "Mark learned" button when the word is not yet learned', () => {
     const word = createWord();

@@ -26,7 +26,7 @@ Data is stored in **localStorage**, and the app is hosted on **GitHub Pages**.
 
 ## Features
 
-- **Word management** — add, delete, search, and filter words by tags
+- **Word management** — add, edit, delete, search, and filter words by tags
 - **Favorites** — mark words as favorites and filter by them
 - **Auto-translate** — automatically fetches Ukrainian translation when adding a word
 - **Auto-image** — searches Wikipedia for a relevant image

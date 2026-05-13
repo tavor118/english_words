@@ -65,6 +65,12 @@
   margin-left: auto;
 }
 
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .rowLearned {
   background: var(--correct-bg);
 }
@@ -114,4 +120,109 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--text-muted);
+}
+
+.editForm {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.editRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.editInput {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.editActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.iconBtn {
+  position: relative;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 8px;
+  border-radius: var(--radius-xs);
+  transition: all 0.2s;
+}
+
+.iconBtn::after {
+  content: attr(aria-label);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text-h);
+  color: var(--card-bg-solid);
+  padding: 4px 8px;
+  border-radius: var(--radius-xs);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 10;
+  box-shadow: var(--shadow);
+}
+
+.iconBtn:hover::after {
+  opacity: 1;
+  transition-delay: 0.25s;
+}
+
+.iconBtnEdit {
+  composes: iconBtn;
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.iconBtnEdit:hover {
+  filter: brightness(0.95);
+}
+
+.iconBtnLearn {
+  composes: iconBtn;
+  color: var(--correct);
+  background: var(--correct-bg);
+}
+
+.iconBtnLearn:hover {
+  filter: brightness(0.95);
+}
+
+.iconBtnReset {
+  composes: iconBtn;
+  color: var(--favorite);
+  background: var(--favorite-bg);
+}
+
+.iconBtnReset:hover {
+  filter: brightness(0.95);
+}
+
+.iconBtnDanger {
+  composes: iconBtn;
+  color: var(--incorrect);
+  background: var(--incorrect-bg);
+}
+
+.iconBtnDanger:hover {
+  filter: brightness(0.95);
 }
