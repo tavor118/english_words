@@ -14,6 +14,8 @@ A personal vocabulary trainer. Add words with translations, drill them through s
 - [Local Development](#local-development)
 - [Deployment](#deployment)
 
+![English Words screenshot](docs/screenshot.png)
+
 ## Features
 
 - Add / edit / delete / search / tag / favorite words
