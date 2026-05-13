@@ -1,8 +1,9 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { Word } from '../types';
-import { shuffle, updateWordAfterReview } from '../utils/spaced-repetition';
-import { getWordsForExercise, markExercisePassed } from '../utils/exercise-progress';
+import { shuffle } from '../utils/spaced-repetition';
+import { getMinWordsForExercise, getWordsForExercise } from '../utils/exercise-progress';
 import { playWord } from '../utils/pronunciation';
+import { useExerciseAnswer } from '../hooks/useExerciseAnswer';
 import { PlayButton } from './PlayButton';
 import shared from '../styles/shared.module.css';
 import s from './Quiz.module.css';
@@ -23,7 +24,7 @@ export function Quiz({ words, onUpdate, onAnswer, limit, onComplete }: Props) {
   });
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
-  const [sessionStats, setSessionStats] = useState({ correct: 0, incorrect: 0 });
+  const { stats: sessionStats, recordAnswer } = useExerciseAnswer('quiz', { onUpdate, onAnswer });
   const nextBtnRef = useRef<HTMLButtonElement>(null);
   const lastPlayedIndexRef = useRef(-1);
 
@@ -43,17 +44,9 @@ export function Quiz({ words, onUpdate, onAnswer, limit, onComplete }: Props) {
     (optionId: string) => {
       if (selected || !currentWord) return;
       setSelected(optionId);
-      const correct = optionId === currentWord.id;
-      const updated = updateWordAfterReview(currentWord, correct);
-      const progressUpdate = correct ? markExercisePassed(currentWord, 'quiz') : {};
-      onUpdate(currentWord.id, { ...updated, ...progressUpdate });
-      setSessionStats((prev) => ({
-        correct: prev.correct + (correct ? 1 : 0),
-        incorrect: prev.incorrect + (correct ? 0 : 1),
-      }));
-      if (correct) onAnswer?.();
+      recordAnswer(currentWord, optionId === currentWord.id);
     },
-    [selected, currentWord, onUpdate, onAnswer]
+    [selected, currentWord, recordAnswer]
   );
 
   useEffect(() => {
@@ -83,7 +76,8 @@ export function Quiz({ words, onUpdate, onAnswer, limit, onComplete }: Props) {
     setCurrentIndex((prev) => prev + 1);
   };
 
-  const cannotRun = words.length < 4 || quizWords.length === 0;
+  const minWords = getMinWordsForExercise('quiz');
+  const cannotRun = words.length < minWords || quizWords.length === 0;
   const finished = currentIndex >= quizWords.length;
   const bail = cannotRun || finished;
 
@@ -93,10 +87,10 @@ export function Quiz({ words, onUpdate, onAnswer, limit, onComplete }: Props) {
 
   if (bail && onComplete) return null;
 
-  if (words.length < 4) {
+  if (words.length < minWords) {
     return (
       <div className={s.container}>
-        <p className={shared.emptyState}>Add at least 4 words to start the quiz!</p>
+        <p className={shared.emptyState}>Add at least {minWords} words to start the quiz!</p>
       </div>
     );
   }

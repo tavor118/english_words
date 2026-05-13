@@ -50,3 +50,18 @@ export function markAllLearned(): Partial<Word> {
 export function getWordsForExercise(words: Word[], key: ExerciseKey): Word[] {
   return words.filter((w) => !w.progress[key]);
 }
+
+// Minimum total words an exercise needs to run. Quiz/ReverseQuiz need 4 options;
+// Match Pairs needs at least one pair.
+const MIN_WORDS: Record<ExerciseKey, number> = {
+  quiz: 4,
+  reverseQuiz: 4,
+  typing: 1,
+  listening: 1,
+  matchPairs: 2,
+  scrambled: 1,
+};
+
+export function getMinWordsForExercise(key: ExerciseKey): number {
+  return MIN_WORDS[key];
+}

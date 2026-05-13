@@ -1,7 +1,8 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { Word } from '../types';
-import { shuffle, updateWordAfterReview } from '../utils/spaced-repetition';
-import { getWordsForExercise, markExercisePassed } from '../utils/exercise-progress';
+import { shuffle } from '../utils/spaced-repetition';
+import { getMinWordsForExercise, getWordsForExercise } from '../utils/exercise-progress';
+import { useExerciseAnswer } from '../hooks/useExerciseAnswer';
 import shared from '../styles/shared.module.css';
 import s from './Quiz.module.css';
 
@@ -21,7 +22,7 @@ export function ReverseQuiz({ words, onUpdate, onAnswer, limit, onComplete }: Pr
   });
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
-  const [sessionStats, setSessionStats] = useState({ correct: 0, incorrect: 0 });
+  const { stats: sessionStats, recordAnswer } = useExerciseAnswer('reverseQuiz', { onUpdate, onAnswer });
   const nextBtnRef = useRef<HTMLButtonElement>(null);
 
   const currentWord = quizWords[currentIndex];
@@ -40,17 +41,9 @@ export function ReverseQuiz({ words, onUpdate, onAnswer, limit, onComplete }: Pr
     (optionId: string) => {
       if (selected || !currentWord) return;
       setSelected(optionId);
-      const correct = optionId === currentWord.id;
-      const updated = updateWordAfterReview(currentWord, correct);
-      const progressUpdate = correct ? markExercisePassed(currentWord, 'reverseQuiz') : {};
-      onUpdate(currentWord.id, { ...updated, ...progressUpdate });
-      setSessionStats((prev) => ({
-        correct: prev.correct + (correct ? 1 : 0),
-        incorrect: prev.incorrect + (correct ? 0 : 1),
-      }));
-      if (correct) onAnswer?.();
+      recordAnswer(currentWord, optionId === currentWord.id);
     },
-    [selected, currentWord, onUpdate, onAnswer]
+    [selected, currentWord, recordAnswer]
   );
 
   useEffect(() => {
@@ -72,7 +65,8 @@ export function ReverseQuiz({ words, onUpdate, onAnswer, limit, onComplete }: Pr
     setCurrentIndex((prev) => prev + 1);
   };
 
-  const cannotRun = words.length < 4 || quizWords.length === 0;
+  const minWords = getMinWordsForExercise('reverseQuiz');
+  const cannotRun = words.length < minWords || quizWords.length === 0;
   const finished = currentIndex >= quizWords.length;
   const bail = cannotRun || finished;
 
@@ -82,10 +76,10 @@ export function ReverseQuiz({ words, onUpdate, onAnswer, limit, onComplete }: Pr
 
   if (bail && onComplete) return null;
 
-  if (words.length < 4) {
+  if (words.length < minWords) {
     return (
       <div className={s.container}>
-        <p className={shared.emptyState}>Add at least 4 words to start the quiz!</p>
+        <p className={shared.emptyState}>Add at least {minWords} words to start the quiz!</p>
       </div>
     );
   }

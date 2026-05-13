@@ -1,12 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import type { Word, ExerciseKey } from '../types';
 import { EXERCISE_KEYS, EXERCISE_LABELS } from '../types';
-import { Quiz } from './Quiz';
-import { ReverseQuiz } from './ReverseQuiz';
-import { Typing } from './Typing';
-import { Listening } from './Listening';
-import { MatchPairs } from './MatchPairs';
-import { Scrambled } from './Scrambled';
+import { ExerciseRenderer } from './ExerciseRenderer';
 import shared from '../styles/shared.module.css';
 import s from './Marathon.module.css';
 
@@ -58,26 +53,6 @@ export function Marathon({ words, onUpdate, onAnswer }: Props) {
   }
 
   const currentKey = SEQUENCE[step];
-  const exerciseKey = `${sessionToken}-${currentKey}`;
-  const commonProps = {
-    key: exerciseKey,
-    words,
-    onUpdate,
-    onAnswer,
-    limit: WORDS_PER_EXERCISE,
-    onComplete: handleComplete,
-  };
-
-  const exerciseElement = () => {
-    switch (currentKey) {
-      case 'quiz': return <Quiz {...commonProps} />;
-      case 'reverseQuiz': return <ReverseQuiz {...commonProps} />;
-      case 'typing': return <Typing {...commonProps} />;
-      case 'listening': return <Listening {...commonProps} />;
-      case 'matchPairs': return <MatchPairs {...commonProps} />;
-      case 'scrambled': return <Scrambled {...commonProps} />;
-    }
-  };
 
   return (
     <div className={s.container}>
@@ -94,7 +69,15 @@ export function Marathon({ words, onUpdate, onAnswer }: Props) {
           ))}
         </div>
       </div>
-      {exerciseElement()}
+      <ExerciseRenderer
+        key={`${sessionToken}-${currentKey}`}
+        type={currentKey}
+        words={words}
+        onUpdate={onUpdate}
+        onAnswer={onAnswer}
+        limit={WORDS_PER_EXERCISE}
+        onComplete={handleComplete}
+      />
     </div>
   );
 }

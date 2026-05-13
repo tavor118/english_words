@@ -1,8 +1,9 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import type { Word } from '../types';
-import { shuffle, updateWordAfterReview } from '../utils/spaced-repetition';
-import { getWordsForExercise, markExercisePassed } from '../utils/exercise-progress';
+import { shuffle } from '../utils/spaced-repetition';
+import { getWordsForExercise } from '../utils/exercise-progress';
 import { playWord } from '../utils/pronunciation';
+import { useExerciseAnswer } from '../hooks/useExerciseAnswer';
 import shared from '../styles/shared.module.css';
 import s from './Scrambled.module.css';
 
@@ -178,24 +179,17 @@ export function Scrambled({ words, onUpdate, onAnswer, limit, onComplete }: Prop
     return limit ? list.slice(0, limit) : list;
   });
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [sessionStats, setSessionStats] = useState({ correct: 0, incorrect: 0 });
+  const { stats: sessionStats, recordAnswer } = useExerciseAnswer('scrambled', { onUpdate, onAnswer });
 
   const currentWord = queue[currentIndex];
 
   const handleResolved = useCallback(
     (correct: boolean) => {
       if (!currentWord) return;
-      const updated = updateWordAfterReview(currentWord, correct);
-      const progressUpdate = correct ? markExercisePassed(currentWord, 'scrambled') : {};
-      onUpdate(currentWord.id, { ...updated, ...progressUpdate });
-      setSessionStats((prev) => ({
-        correct: prev.correct + (correct ? 1 : 0),
-        incorrect: prev.incorrect + (correct ? 0 : 1),
-      }));
+      recordAnswer(currentWord, correct);
       playWord(currentWord.word, currentWord.audioUrl, (url) => onUpdate(currentWord.id, { audioUrl: url }));
-      if (correct) onAnswer?.();
     },
-    [currentWord, onUpdate, onAnswer]
+    [currentWord, onUpdate, recordAnswer]
   );
 
   const handleNext = () => setCurrentIndex((prev) => prev + 1);

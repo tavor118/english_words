@@ -1,8 +1,10 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { Word } from '../types';
-import { shuffle, updateWordAfterReview } from '../utils/spaced-repetition';
-import { getWordsForExercise, markExercisePassed } from '../utils/exercise-progress';
+import { shuffle } from '../utils/spaced-repetition';
+import { getWordsForExercise } from '../utils/exercise-progress';
 import { pronounce } from '../utils/pronunciation';
+import { normalizeAnswer } from '../utils/string';
+import { useExerciseAnswer } from '../hooks/useExerciseAnswer';
 import { PlayButton } from './PlayButton';
 import shared from '../styles/shared.module.css';
 import s from './Typing.module.css';
@@ -16,10 +18,6 @@ interface Props {
   onComplete?: () => void;
 }
 
-function normalize(value: string): string {
-  return value.trim().toLowerCase();
-}
-
 export function Listening({ words, onUpdate, onAnswer, limit, onComplete }: Props) {
   const [queue] = useState<Word[]>(() => {
     const list = shuffle(getWordsForExercise(words, 'listening'));
@@ -28,7 +26,7 @@ export function Listening({ words, onUpdate, onAnswer, limit, onComplete }: Prop
   const [currentIndex, setCurrentIndex] = useState(0);
   const [input, setInput] = useState('');
   const [verdict, setVerdict] = useState<null | 'correct' | 'incorrect'>(null);
-  const [sessionStats, setSessionStats] = useState({ correct: 0, incorrect: 0 });
+  const { stats: sessionStats, recordAnswer } = useExerciseAnswer('listening', { onUpdate, onAnswer });
   const inputRef = useRef<HTMLInputElement>(null);
   const nextBtnRef = useRef<HTMLButtonElement>(null);
 
@@ -51,18 +49,11 @@ export function Listening({ words, onUpdate, onAnswer, limit, onComplete }: Prop
     (e?: React.FormEvent) => {
       e?.preventDefault();
       if (verdict || !currentWord) return;
-      const correct = normalize(input) === normalize(currentWord.word);
-      const updated = updateWordAfterReview(currentWord, correct);
-      const progressUpdate = correct ? markExercisePassed(currentWord, 'listening') : {};
-      onUpdate(currentWord.id, { ...updated, ...progressUpdate });
+      const correct = normalizeAnswer(input) === normalizeAnswer(currentWord.word);
+      recordAnswer(currentWord, correct);
       setVerdict(correct ? 'correct' : 'incorrect');
-      setSessionStats((prev) => ({
-        correct: prev.correct + (correct ? 1 : 0),
-        incorrect: prev.incorrect + (correct ? 0 : 1),
-      }));
-      if (correct) onAnswer?.();
     },
-    [verdict, currentWord, input, onUpdate, onAnswer]
+    [verdict, currentWord, input, recordAnswer]
   );
 
   const handleNext = () => {

@@ -7,12 +7,7 @@ import { useDailyProgress } from './hooks/useDailyProgress';
 import { AddWordForm } from './components/AddWordForm';
 import { WordList } from './components/WordList';
 import { Flashcard } from './components/Flashcard';
-import { Quiz } from './components/Quiz';
-import { ReverseQuiz } from './components/ReverseQuiz';
-import { Typing } from './components/Typing';
-import { Listening } from './components/Listening';
-import { MatchPairs } from './components/MatchPairs';
-import { Scrambled } from './components/Scrambled';
+import { ExerciseRenderer } from './components/ExerciseRenderer';
 import { Marathon } from './components/Marathon';
 import { SyncControl } from './components/SyncControl';
 import { DailyProgressBar } from './components/DailyProgressBar';
@@ -65,23 +60,7 @@ function App() {
     { key: 'flashcard', label: 'Flashcards', onClick: () => startSession('flashcard') },
   ];
 
-  const renderPractice = () => {
-    const key = `${stableId}-${practiceView}-${sessionKey}`;
-    switch (practiceView) {
-      case 'quiz':
-        return <Quiz key={key} words={words} onUpdate={updateWord} onAnswer={daily.addPoint} />;
-      case 'reverseQuiz':
-        return <ReverseQuiz key={key} words={words} onUpdate={updateWord} onAnswer={daily.addPoint} />;
-      case 'typing':
-        return <Typing key={key} words={words} onUpdate={updateWord} onAnswer={daily.addPoint} />;
-      case 'listening':
-        return <Listening key={key} words={words} onUpdate={updateWord} onAnswer={daily.addPoint} />;
-      case 'matchPairs':
-        return <MatchPairs key={key} words={words} onUpdate={updateWord} onAnswer={daily.addPoint} />;
-      case 'scrambled':
-        return <Scrambled key={key} words={words} onUpdate={updateWord} onAnswer={daily.addPoint} />;
-    }
-  };
+  const practiceKey = `${stableId}-${practiceView}-${sessionKey}`;
 
   return (
     <div className={s.app}>
@@ -135,7 +114,13 @@ function App() {
                 </button>
               ))}
             </nav>
-            {renderPractice()}
+            <ExerciseRenderer
+              key={practiceKey}
+              type={practiceView}
+              words={words}
+              onUpdate={updateWord}
+              onAnswer={daily.addPoint}
+            />
           </div>
         )}
         {view === 'marathon' && (

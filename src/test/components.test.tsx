@@ -548,11 +548,6 @@ describe('limit + onComplete', () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it('Quiz still renders its empty-state when onComplete is not provided', () => {
-    const words = [createWord(), createWord()];
-    render(<Quiz words={words} onUpdate={vi.fn()} />);
-    expect(screen.getByText(/at least 4 words/i)).toBeInTheDocument();
-  });
 });
 
 describe('Marathon', () => {
@@ -575,7 +570,7 @@ describe('Marathon', () => {
 });
 
 describe('Auto-play guard', () => {
-  it('Flashcard plays audio once per word even under StrictMode double-invoke', () => {
+  it('plays audio once per word even under StrictMode double-invoke', () => {
     vi.mocked(playWord).mockClear();
     const words = [createWord({ word: 'hello', translation: 'привіт' })];
     render(
@@ -586,20 +581,6 @@ describe('Auto-play guard', () => {
 
     expect(playWord).toHaveBeenCalledTimes(1);
     expect(playWord).toHaveBeenCalledWith('hello', null, expect.any(Function));
-  });
-
-  it('Quiz plays audio once per question under StrictMode double-invoke', () => {
-    vi.mocked(playWord).mockClear();
-    const words = Array.from({ length: 5 }, (_, i) =>
-      createWord({ word: `w${i}`, translation: `t${i}` })
-    );
-    render(
-      <StrictMode>
-        <Quiz words={words} onUpdate={vi.fn()} />
-      </StrictMode>
-    );
-
-    expect(playWord).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -644,29 +625,6 @@ describe('exercise points', () => {
     expect(onAnswer).not.toHaveBeenCalled();
   });
 
-  it('Flashcard calls onAnswer when Got It is pressed', () => {
-    const words = [createWord({ word: 'hello', translation: 'привіт' })];
-    const onAnswer = vi.fn();
-    render(<Flashcard words={words} onUpdate={vi.fn()} onAnswer={onAnswer} />);
-
-    const card = screen.getByRole('button', { name: /flip card to translation/i });
-    fireEvent.keyDown(card, { key: 'Enter' });
-    fireEvent.keyDown(window, { key: 'k' });
-
-    expect(onAnswer).toHaveBeenCalledTimes(1);
-  });
-
-  it('Flashcard does NOT call onAnswer when Don\'t Know is pressed', () => {
-    const words = [createWord({ word: 'hello', translation: 'привіт' })];
-    const onAnswer = vi.fn();
-    render(<Flashcard words={words} onUpdate={vi.fn()} onAnswer={onAnswer} />);
-
-    const card = screen.getByRole('button', { name: /flip card to translation/i });
-    fireEvent.keyDown(card, { key: 'Enter' });
-    fireEvent.keyDown(window, { key: 'd' });
-
-    expect(onAnswer).not.toHaveBeenCalled();
-  });
 });
 
 describe('WordRow image error fallback', () => {

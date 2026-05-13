@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import type { Word } from '../types';
-import { shuffle, updateWordAfterReview } from '../utils/spaced-repetition';
-import { getWordsForExercise, markExercisePassed } from '../utils/exercise-progress';
+import { shuffle } from '../utils/spaced-repetition';
+import { getMinWordsForExercise, getWordsForExercise } from '../utils/exercise-progress';
+import { useExerciseAnswer } from '../hooks/useExerciseAnswer';
 import shared from '../styles/shared.module.css';
 import s from './MatchPairs.module.css';
 
@@ -28,7 +29,7 @@ export function MatchPairs({ words, onUpdate, onAnswer, limit, onComplete }: Pro
   const [selectedUa, setSelectedUa] = useState<string | null>(null);
   const [matchedIds, setMatchedIds] = useState<Set<string>>(new Set());
   const [wrong, setWrong] = useState<{ en: string; ua: string } | null>(null);
-  const [sessionStats, setSessionStats] = useState({ correct: 0, incorrect: 0 });
+  const { stats: sessionStats, recordAnswer } = useExerciseAnswer('matchPairs', { onUpdate, onAnswer });
 
   const allMatched = matchedIds.size === round.length && round.length > 0;
 
@@ -43,15 +44,8 @@ export function MatchPairs({ words, onUpdate, onAnswer, limit, onComplete }: Pro
       const w = wordById.get(enId);
       if (!w) return;
       const correct = enId === uaId;
-      const updated = updateWordAfterReview(w, correct);
-      const progressUpdate = correct ? markExercisePassed(w, 'matchPairs') : {};
-      onUpdate(w.id, { ...updated, ...progressUpdate });
-      setSessionStats((prev) => ({
-        correct: prev.correct + (correct ? 1 : 0),
-        incorrect: prev.incorrect + (correct ? 0 : 1),
-      }));
+      recordAnswer(w, correct);
       if (correct) {
-        onAnswer?.();
         setMatchedIds((prev) => new Set(prev).add(enId));
         setSelectedEn(null);
         setSelectedUa(null);
@@ -64,7 +58,7 @@ export function MatchPairs({ words, onUpdate, onAnswer, limit, onComplete }: Pro
         }, 600);
       }
     },
-    [wordById, onUpdate, onAnswer]
+    [wordById, recordAnswer]
   );
 
   const handleSelectEn = useCallback(
@@ -101,7 +95,8 @@ export function MatchPairs({ words, onUpdate, onAnswer, limit, onComplete }: Pro
     return () => window.removeEventListener('keydown', handler);
   }, [enOrder, uaOrder, handleSelectEn, handleSelectUa]);
 
-  const cannotRun = words.length < 2 || round.length === 0;
+  const minWords = getMinWordsForExercise('matchPairs');
+  const cannotRun = words.length < minWords || round.length === 0;
   const bail = cannotRun || allMatched;
 
   useEffect(() => {
@@ -110,10 +105,10 @@ export function MatchPairs({ words, onUpdate, onAnswer, limit, onComplete }: Pro
 
   if (bail && onComplete) return null;
 
-  if (words.length < 2) {
+  if (words.length < minWords) {
     return (
       <div className={s.container}>
-        <p className={shared.emptyState}>Add at least 2 words to play Match Pairs.</p>
+        <p className={shared.emptyState}>Add at least {minWords} words to play Match Pairs.</p>
       </div>
     );
   }
