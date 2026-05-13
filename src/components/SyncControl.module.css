@@ -55,6 +55,35 @@
   justify-content: center;
 }
 
+.githubBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  color: var(--text-h);
+  border: 1px solid var(--card-border);
+  border-radius: 50%;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease, color 0.2s ease;
+  text-decoration: none;
+}
+
+.githubBtn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+.githubBtn:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
 /* Signed-in: minimal status + sign-out */
 .status {
   display: inline-flex;
@@ -150,6 +179,11 @@
   .googleLogo {
     width: 20px;
     height: 20px;
+  }
+
+  .githubBtn {
+    width: 32px;
+    height: 32px;
   }
 
   .status {
