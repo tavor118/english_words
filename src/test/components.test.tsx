@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
+import { StrictMode } from 'react';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+import { playWord } from '../utils/pronunciation';
 import { AddWordForm } from '../components/AddWordForm';
 import { WordList } from '../components/WordList';
 import { Flashcard } from '../components/Flashcard';
@@ -20,6 +22,14 @@ import { createWord } from './helpers';
 globalThis.fetch = vi.fn(() =>
   Promise.resolve({ ok: false, json: () => Promise.resolve({}) } as Response)
 );
+
+vi.mock('../utils/pronunciation', () => ({
+  playWord: vi.fn(() => Promise.resolve()),
+  pronounce: vi.fn(() => Promise.resolve()),
+  getAudioUrl: vi.fn(() => Promise.resolve(null)),
+  playAudio: vi.fn(),
+  speakWord: vi.fn(),
+}));
 
 // jsdom doesn't ship speech synthesis APIs — stub them so Listening can mount.
 class FakeUtterance {
@@ -532,6 +542,35 @@ describe('Marathon', () => {
   });
 });
 
+describe('Auto-play guard', () => {
+  it('Flashcard plays audio once per word even under StrictMode double-invoke', () => {
+    vi.mocked(playWord).mockClear();
+    const words = [createWord({ word: 'hello', translation: 'привіт' })];
+    render(
+      <StrictMode>
+        <Flashcard words={words} onUpdate={vi.fn()} />
+      </StrictMode>
+    );
+
+    expect(playWord).toHaveBeenCalledTimes(1);
+    expect(playWord).toHaveBeenCalledWith('hello', null, expect.any(Function));
+  });
+
+  it('Quiz plays audio once per question under StrictMode double-invoke', () => {
+    vi.mocked(playWord).mockClear();
+    const words = Array.from({ length: 5 }, (_, i) =>
+      createWord({ word: `w${i}`, translation: `t${i}` })
+    );
+    render(
+      <StrictMode>
+        <Quiz words={words} onUpdate={vi.fn()} />
+      </StrictMode>
+    );
+
+    expect(playWord).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('DailyProgressBar', () => {
   it('renders points, goal, and percentage', () => {
     render(<DailyProgressBar points={20} goal={50} percentage={40} />);
@@ -595,6 +634,21 @@ describe('exercise points', () => {
     fireEvent.keyDown(window, { key: 'd' });
 
     expect(onAnswer).not.toHaveBeenCalled();
+  });
+});
+
+describe('WordRow image error fallback', () => {
+  it('falls back to placeholder and clears imageUrl when the image fails to load', () => {
+    const word = createWord({ word: 'apple', translation: 'яблуко', imageUrl: 'https://example.com/dead.jpg' });
+    const onUpdate = vi.fn();
+    render(<WordRow word={word} onDelete={vi.fn()} onUpdate={onUpdate} />);
+
+    const img = screen.getByRole('img', { name: 'apple' }) as HTMLImageElement;
+    fireEvent.error(img);
+
+    expect(onUpdate).toHaveBeenCalledWith(word.id, { imageUrl: null });
+    expect(screen.queryByRole('img', { name: 'apple' })).not.toBeInTheDocument();
+    expect(screen.getByText('A')).toBeInTheDocument();
   });
 });
 

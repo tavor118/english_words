@@ -10,7 +10,7 @@ function emptyProgress(): ExerciseProgress {
   }, {} as ExerciseProgress);
 }
 
-function migrateWord(raw: Word): Word {
+function migrateWord(raw: Partial<Word>): Word {
   const existing = raw.progress as Partial<ExerciseProgress> | undefined;
   const progress = emptyProgress();
   if (existing) {
@@ -20,13 +20,26 @@ function migrateWord(raw: Word): Word {
   }
   const allPassed = EXERCISE_KEYS.every((k) => progress[k]);
   return {
-    ...raw,
+    id: raw.id ?? crypto.randomUUID(),
+    word: raw.word ?? '',
+    translation: raw.translation ?? '',
+    example: raw.example ?? '',
+    tags: Array.isArray(raw.tags) ? raw.tags : [],
+    createdAt: raw.createdAt ?? Date.now(),
+    correctCount: raw.correctCount ?? 0,
+    incorrectCount: raw.incorrectCount ?? 0,
+    lastReviewedAt: raw.lastReviewedAt ?? null,
+    nextReviewAt: raw.nextReviewAt ?? Date.now(),
+    interval: raw.interval ?? 1,
+    favorite: raw.favorite ?? false,
+    imageUrl: raw.imageUrl ?? null,
+    audioUrl: raw.audioUrl ?? null,
     progress,
     learnedAt: raw.learnedAt ?? (allPassed ? Date.now() : null),
   };
 }
 
-function migrateWords(words: Word[]): Word[] {
+export function migrateWords(words: Partial<Word>[]): Word[] {
   return words.map(migrateWord);
 }
 

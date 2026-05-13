@@ -8,6 +8,7 @@ import {
   signOut as driveSignOut,
   uploadWords,
 } from '../utils/drive-sync';
+import { migrateWords } from '../utils/storage';
 
 export type SyncStatus = 'disabled' | 'signed-out' | 'syncing' | 'idle' | 'error';
 
@@ -35,9 +36,10 @@ export function useDriveSync({ words, replaceWords }: Args) {
     try {
       const remote = await downloadWords();
       if (remote) {
-        replaceWords(remote.words);
+        const migrated = migrateWords(remote.words);
+        replaceWords(migrated);
         localStorage.setItem(LAST_MODIFIED_KEY, remote.modifiedTime);
-        lastUploadedJson.current = JSON.stringify(remote.words);
+        lastUploadedJson.current = JSON.stringify(migrated);
       } else {
         const modifiedTime = await uploadWords(words);
         localStorage.setItem(LAST_MODIFIED_KEY, modifiedTime);

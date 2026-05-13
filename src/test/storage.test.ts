@@ -57,4 +57,28 @@ describe('storage', () => {
     expect(EXERCISE_KEYS.every((k) => loaded[0].progress[k])).toBe(true);
     expect(loaded[0].learnedAt).toBeGreaterThan(0);
   });
+
+  it('fills in defaults for words missing optional fields', () => {
+    store['english-words'] = JSON.stringify([
+      { id: 'a', word: 'apple', translation: 'яблуко' },
+    ]);
+
+    const loaded = loadWords();
+    expect(loaded[0]).toMatchObject({
+      id: 'a',
+      word: 'apple',
+      translation: 'яблуко',
+      example: '',
+      tags: [],
+      correctCount: 0,
+      incorrectCount: 0,
+      lastReviewedAt: null,
+      interval: 1,
+      favorite: false,
+      imageUrl: null,
+      audioUrl: null,
+    });
+    expect(loaded[0].progress).toEqual(emptyProgress());
+    expect(loaded[0].createdAt).toBeGreaterThan(0);
+  });
 });
