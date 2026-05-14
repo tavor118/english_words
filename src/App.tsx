@@ -52,6 +52,10 @@ function App() {
     setSessionKey((k) => k + 1);
   };
 
+  const handleRefreshAudio = () => {
+    replaceWords(words.map((w) => ({ ...w, audioUrl: null })));
+  };
+
   const navItems: { key: View; label: string; onClick: () => void }[] = [
     { key: 'list', label: 'Words', onClick: () => setView('list') },
     { key: 'add', label: 'Add', onClick: () => { setPrefillWord(''); setView('add'); } },
@@ -84,6 +88,7 @@ function App() {
           configured={sync.configured}
           onSignIn={sync.signIn}
           onSignOut={sync.signOut}
+          onRefreshAudio={handleRefreshAudio}
         />
       </header>
 

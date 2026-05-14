@@ -1,4 +1,5 @@
 import type { SyncStatus } from '../hooks/useDriveSync';
+import { SettingsControl } from './SettingsControl';
 import s from './SyncControl.module.css';
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
   configured: boolean;
   onSignIn: () => void;
   onSignOut: () => void;
+  onRefreshAudio: () => void;
 }
 
 const REPO_URL = 'https://github.com/tavor118/english_words';
@@ -50,13 +52,14 @@ function GitHubLink() {
   );
 }
 
-export function SyncControl({ status, error, signedIn, configured, onSignIn, onSignOut }: Props) {
+export function SyncControl({ status, error, signedIn, configured, onSignIn, onSignOut, onRefreshAudio }: Props) {
   const dotClass =
     status === 'syncing' ? s.dotSyncing : status === 'error' ? s.dotError : s.dotIdle;
 
   return (
     <div className={s.wrapper}>
       <GitHubLink />
+      <SettingsControl onRefreshAudio={onRefreshAudio} />
       {configured && (signedIn ? (
         <>
           <span className={s.status}>
