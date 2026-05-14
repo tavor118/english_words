@@ -11,6 +11,7 @@ A personal vocabulary trainer. Add words with translations, drill them through s
 - [Keyboard Shortcuts](#keyboard-shortcuts)
 - [Data Storage](#data-storage)
 - [Google Drive Sync (optional)](#google-drive-sync-optional)
+- [Pronunciation Audio (optional)](#pronunciation-audio-optional)
 - [Local Development](#local-development)
 - [Deployment](#deployment)
 
@@ -103,6 +104,25 @@ While the OAuth app is in **Testing** mode (the default), only emails on the Tes
 - **Ongoing uploads** — debounced ~2s after each change; deduplicated by JSON comparison. If the access token has silently expired, the upload is skipped (next change retries).
 - **Conflict policy** — last-write-wins after the initial sync; no per-change merge. Two devices editing simultaneously will lose changes from whichever uploads first.
 - **Status** — UI surfaces `disabled` / `signed-out` / `syncing` / `idle` / `error`.
+
+## Pronunciation Audio (optional)
+
+Word audio is resolved through a 3-tier fallback chain:
+
+1. **Cambridge Dictionary** (best US accent) — via a self-hosted scraper, enabled only if `VITE_CAMBRIDGE_API` is set.
+2. **dictionaryapi.dev** — crowd-sourced, decent quality, no setup.
+3. **Browser `speechSynthesis`** — last resort if both APIs fail.
+
+If `VITE_CAMBRIDGE_API` is unset, the app silently skips tier 1 — everything still works on tiers 2–3.
+
+### Enabling Cambridge audio
+
+1. Deploy [chenelias/cambridge-dictionary-api](https://github.com/chenelias/cambridge-dictionary-api) to Vercel (one click via the README's "Deploy with Vercel" button). The current deployment serves `Access-Control-Allow-Origin: *` out of the box.
+2. Add the URL to `.env`:
+   ```
+   VITE_CAMBRIDGE_API=https://<your-deploy>.vercel.app
+   ```
+3. For Pages deployment, add `VITE_CAMBRIDGE_API` as a repo Variable (Settings → Secrets and variables → Actions → Variables). It's already referenced in `.github/workflows/deploy.yml`.
 
 ## Local Development
 
