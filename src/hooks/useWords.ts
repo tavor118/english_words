@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Word, ExerciseProgress } from '../types';
 import { EXERCISE_KEYS } from '../types';
 import { loadWords, saveWords } from '../utils/storage';
+import { createInitialFsrsState } from '../utils/spaced-repetition';
 
 export type NewWordInput = Pick<Word, 'word' | 'translation' | 'example' | 'tags'> & {
   imageUrl?: string | null;
@@ -31,11 +32,9 @@ export function useWords() {
       ...input,
       id: crypto.randomUUID(),
       createdAt: Date.now(),
-      correctCount: 0,
-      incorrectCount: 0,
-      lastReviewedAt: null,
-      nextReviewAt: Date.now(),
-      interval: 1,
+      ratings: { again: 0, hard: 0, good: 0, easy: 0 },
+      lastRating: null,
+      fsrs: createInitialFsrsState(),
       favorite: false,
       imageUrl: input.imageUrl ?? null,
       audioUrl: input.audioUrl ?? null,

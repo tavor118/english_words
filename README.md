@@ -46,7 +46,15 @@ Each session pulls only words where that specific exercise is not yet passed. Wr
 
 ### Flashcards (spaced repetition)
 
-Separate review track, unrelated to the six-exercise progress. New words start with a 1-day interval; **Got It** multiplies by 2.5× (capped at 365 days), **Don't Know** resets to 1 day. Sessions prioritize overdue words.
+Separate review track, unrelated to the six-exercise progress. Scheduling uses [FSRS](https://github.com/open-spaced-repetition/ts-fsrs) — a four-button rating model that estimates each word's memory stability and difficulty from your history and picks an interval targeting ~90% recall. Sessions prioritize overdue words.
+
+Rate each card on flip:
+- **Again** (`1`) — forgot it. Treated as a lapse; the word is rescheduled soon.
+- **Hard** (`2`) — remembered, but with effort. Shorter interval than Good.
+- **Good** (`3`) — remembered normally.
+- **Easy** (`4`) — instant recall. Longer interval than Good.
+
+Again counts as incorrect; Hard/Good/Easy count as correct (for daily-progress points and lifetime stats).
 
 ### Daily goal
 
@@ -58,7 +66,7 @@ A bottom progress bar tracks **1 point per correct answer** (Match Pairs awards 
 - **Typing / Listening** — type, `Enter` to check, `Enter` again to advance.
 - **Match Pairs** — `1`–`5` for the EN column, `6`–`9` / `0` for the UA column.
 - **Scrambled** — type letters (auto-placed), `Backspace` to undo, `Enter` to advance.
-- **Flashcards** — `Enter` / `Space` to flip; once flipped, `K` for Got It, `D` for Don't Know.
+- **Flashcards** — `Enter` / `Space` to flip; once flipped, `1` Again / `2` Hard / `3` Good / `4` Easy.
 
 ## Data Storage
 

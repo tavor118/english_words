@@ -20,6 +20,32 @@ export const EXERCISE_LABELS: Record<ExerciseKey, string> = {
   scrambled: 'Scrambled',
 };
 
+// FSRS scheduler state for a word (only updated by Flashcards).
+// State: 0=New, 1=Learning, 2=Review, 3=Relearning. All times are ms timestamps.
+export interface FsrsState {
+  due: number;
+  stability: number;
+  difficulty: number;
+  elapsedDays: number;
+  scheduledDays: number;
+  reps: number;
+  lapses: number;
+  learningSteps: number;
+  state: number;
+  lastReview: number | null;
+}
+
+// Lifetime count of each rating given to a word from Flashcards.
+export interface RatingCounts {
+  again: number;
+  hard: number;
+  good: number;
+  easy: number;
+}
+
+// FSRS rating value: 1=Again, 2=Hard, 3=Good, 4=Easy.
+export type RatingValue = 1 | 2 | 3 | 4;
+
 export interface Word {
   id: string;
   word: string;
@@ -27,12 +53,12 @@ export interface Word {
   example: string;
   tags: string[];
   createdAt: number;
-  // Spaced repetition fields (used by Flashcards)
-  correctCount: number;
-  incorrectCount: number;
-  lastReviewedAt: number | null;
-  nextReviewAt: number;
-  interval: number; // days until next review
+  // Per-rating lifetime counts from Flashcard reviews.
+  ratings: RatingCounts;
+  // Most recent rating given (drives the collapsed stats indicator). Null if never reviewed.
+  lastRating: RatingValue | null;
+  // FSRS scheduler state — only mutated by Flashcards.
+  fsrs: FsrsState;
   favorite: boolean;
   imageUrl: string | null;
   audioUrl: string | null;

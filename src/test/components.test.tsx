@@ -189,15 +189,17 @@ describe('Flashcard', () => {
     expect(screen.getByText('Word')).toBeInTheDocument();
   });
 
-  it('shows action buttons after flip', () => {
+  it('shows the four rating buttons after flip', () => {
     const words = [createWord({ word: 'hello', translation: 'привіт' })];
     render(<Flashcard words={words} onUpdate={vi.fn()} />);
 
     expect(screen.getByText(/click or press enter to flip/i)).toBeInTheDocument();
     fireEvent.click(screen.getByText('hello'));
 
-    expect(screen.getByRole('button', { name: /don't know/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /got it!/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^again/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^hard/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^good/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^easy/i })).toBeInTheDocument();
   });
 });
 
@@ -220,8 +222,7 @@ describe('Quiz', () => {
     const words = Array.from({ length: 5 }, (_, i) =>
       createWord({ word: `w${i}`, translation: `t${i}` })
     );
-    const onUpdate = vi.fn();
-    render(<Quiz words={words} onUpdate={onUpdate} />);
+    render(<Quiz words={words} onUpdate={vi.fn()} />);
 
     const options = screen.getAllByRole('button').filter(
       (btn) => /^\d\s*t\d$/.test(btn.textContent ?? '')
@@ -229,7 +230,6 @@ describe('Quiz', () => {
     fireEvent.click(options[0]);
 
     expect(screen.getByRole('button', { name: 'Next' })).toBeInTheDocument();
-    expect(onUpdate).toHaveBeenCalled();
   });
 });
 
@@ -245,27 +245,24 @@ describe('Quiz keyboard', () => {
     const words = Array.from({ length: 5 }, (_, i) =>
       createWord({ word: `w${i}`, translation: `t${i}` })
     );
-    const onUpdate = vi.fn();
-    render(<Quiz words={words} onUpdate={onUpdate} />);
+    render(<Quiz words={words} onUpdate={vi.fn()} />);
 
     fireEvent.keyDown(window, { key: '1' });
 
     expect(screen.getByRole('button', { name: 'Next' })).toBeInTheDocument();
-    expect(onUpdate).toHaveBeenCalled();
   });
 
   it('ignores number keys after an option has been selected', () => {
     const words = Array.from({ length: 5 }, (_, i) =>
       createWord({ word: `w${i}`, translation: `t${i}` })
     );
-    const onUpdate = vi.fn();
-    render(<Quiz words={words} onUpdate={onUpdate} />);
+    render(<Quiz words={words} onUpdate={vi.fn()} />);
 
     fireEvent.keyDown(window, { key: '1' });
+    const nextBefore = screen.getByRole('button', { name: 'Next' });
     fireEvent.keyDown(window, { key: '2' });
-
-    // onUpdate should only have been called once — the second keypress is a no-op.
-    expect(onUpdate).toHaveBeenCalledTimes(1);
+    // Second keypress is a no-op; Next button remains the only state change.
+    expect(screen.getByRole('button', { name: 'Next' })).toBe(nextBefore);
   });
 });
 
@@ -376,8 +373,8 @@ describe('Typing', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Check' }));
 
-    const update = onUpdate.mock.calls[0][1];
-    expect(update.progress?.typing ?? false).toBe(false);
+    // Incorrect answers don't touch the word — there's nothing to update.
+    expect(onUpdate).not.toHaveBeenCalled();
   });
 });
 
@@ -487,35 +484,59 @@ describe('Flashcard keyboard', () => {
     const card = screen.getByRole('button', { name: /flip card to translation/i });
     fireEvent.keyDown(card, { key: 'Enter' });
 
-    expect(screen.getByRole('button', { name: /got it!/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^good/i })).toBeInTheDocument();
   });
 
-  it('marks Got It on K when flipped', () => {
+  it('marks Good on 3 when flipped', () => {
     const words = [createWord({ word: 'hello', translation: 'привіт' })];
     const onUpdate = vi.fn();
     render(<Flashcard words={words} onUpdate={onUpdate} />);
 
     const card = screen.getByRole('button', { name: /flip card to translation/i });
     fireEvent.keyDown(card, { key: 'Enter' });
-    fireEvent.keyDown(window, { key: 'k' });
+    fireEvent.keyDown(window, { key: '3' });
 
     expect(onUpdate).toHaveBeenCalled();
     const [, update] = onUpdate.mock.calls[0];
-    expect(update.correctCount).toBe(1);
+    expect(update.ratings).toEqual({ again: 0, hard: 0, good: 1, easy: 0 });
+    expect(update.lastRating).toBe(3);
+    expect(update.fsrs.reps).toBe(1);
   });
 
-  it('marks Don\'t Know on D when flipped', () => {
+  it('marks Again on 1 when flipped', () => {
     const words = [createWord({ word: 'hello', translation: 'привіт' })];
     const onUpdate = vi.fn();
     render(<Flashcard words={words} onUpdate={onUpdate} />);
 
     const card = screen.getByRole('button', { name: /flip card to translation/i });
     fireEvent.keyDown(card, { key: 'Enter' });
-    fireEvent.keyDown(window, { key: 'd' });
+    fireEvent.keyDown(window, { key: '1' });
 
     expect(onUpdate).toHaveBeenCalled();
     const [, update] = onUpdate.mock.calls[0];
-    expect(update.incorrectCount).toBe(1);
+    expect(update.ratings).toEqual({ again: 1, hard: 0, good: 0, easy: 0 });
+    expect(update.lastRating).toBe(1);
+    expect(update.fsrs.reps).toBe(1);
+  });
+
+  it('Easy (4) schedules further out than Good (3)', () => {
+    const words = [createWord({ word: 'hello', translation: 'привіт' })];
+    const onUpdateGood = vi.fn();
+    const { unmount } = render(<Flashcard words={words} onUpdate={onUpdateGood} />);
+    const card1 = screen.getByRole('button', { name: /flip card to translation/i });
+    fireEvent.keyDown(card1, { key: 'Enter' });
+    fireEvent.keyDown(window, { key: '3' });
+    unmount();
+
+    const onUpdateEasy = vi.fn();
+    render(<Flashcard words={words} onUpdate={onUpdateEasy} />);
+    const card2 = screen.getByRole('button', { name: /flip card to translation/i });
+    fireEvent.keyDown(card2, { key: 'Enter' });
+    fireEvent.keyDown(window, { key: '4' });
+
+    expect(onUpdateEasy.mock.calls[0][1].fsrs.due).toBeGreaterThan(
+      onUpdateGood.mock.calls[0][1].fsrs.due
+    );
   });
 });
 

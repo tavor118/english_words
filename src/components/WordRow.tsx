@@ -47,6 +47,20 @@ const TrashIcon = () => (
   </svg>
 );
 
+const CloseIcon = () => (
+  <svg {...iconProps}>
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
+const RATING_TOGGLE_CLASS: Record<1 | 2 | 3 | 4, string> = {
+  1: 'statsToggleAgain',
+  2: 'statsToggleHard',
+  3: 'statsToggleGood',
+  4: 'statsToggleEasy',
+};
+
 interface Props {
   word: Word;
   onDelete: (id: string) => void;
@@ -57,6 +71,7 @@ export function WordRow({ word, onDelete, onUpdate }: Props) {
   const learned = isLearned(word);
   const passed = countPassed(word);
   const [editing, setEditing] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
   const [draftImgError, setDraftImgError] = useState(false);
   const [draft, setDraft] = useState({
@@ -221,8 +236,31 @@ export function WordRow({ word, onDelete, onUpdate }: Props) {
             <span className={s.progressCount}>{passed}/{EXERCISE_KEYS.length}</span>
           </div>
           <div className={s.right}>
-            <span className={shared.statCorrect}>{word.correctCount}</span>
-            <span className={shared.statIncorrect}>{word.incorrectCount}</span>
+            {statsOpen ? (
+              <>
+                <span className={shared.statAgain}>{word.ratings.again}</span>
+                <span className={shared.statHard}>{word.ratings.hard}</span>
+                <span className={shared.statGood}>{word.ratings.good}</span>
+                <span className={shared.statEasy}>{word.ratings.easy}</span>
+                <button
+                  className={s.iconBtn}
+                  onClick={() => setStatsOpen(false)}
+                  aria-label="Hide stats"
+                >
+                  <CloseIcon />
+                </button>
+              </>
+            ) : (
+              word.lastRating !== null && (
+                <button
+                  className={s[RATING_TOGGLE_CLASS[word.lastRating]]}
+                  onClick={() => setStatsOpen(true)}
+                  aria-label="Show stats"
+                >
+                  {word.lastRating}
+                </button>
+              )
+            )}
             <div className={s.actions}>
               <button
                 className={s.iconBtnEdit}

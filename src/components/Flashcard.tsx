@@ -1,6 +1,16 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { Word } from '../types';
-import { getWordsForReview, shuffle, updateWordAfterReview } from '../utils/spaced-repetition';
+import type { RatingCounts, RatingValue } from '../types';
+import {
+  type FsrsRating,
+  RATING_AGAIN,
+  RATING_HARD,
+  RATING_GOOD,
+  RATING_EASY,
+  getWordsForReview,
+  scheduleReview,
+  shuffle,
+} from '../utils/spaced-repetition';
 import { playWord } from '../utils/pronunciation';
 import { PlayButton } from './PlayButton';
 import shared from '../styles/shared.module.css';
@@ -12,6 +22,13 @@ interface Props {
   onAnswer?: () => void;
 }
 
+const RATING_BUTTONS: { rating: FsrsRating; label: string; key: string; className: string; ratingKey: keyof RatingCounts }[] = [
+  { rating: RATING_AGAIN, label: 'Again', key: '1', className: 'rateBtnAgain', ratingKey: 'again' },
+  { rating: RATING_HARD, label: 'Hard', key: '2', className: 'rateBtnHard', ratingKey: 'hard' },
+  { rating: RATING_GOOD, label: 'Good', key: '3', className: 'rateBtnGood', ratingKey: 'good' },
+  { rating: RATING_EASY, label: 'Easy', key: '4', className: 'rateBtnEasy', ratingKey: 'easy' },
+];
+
 export function Flashcard({ words, onUpdate, onAnswer }: Props) {
   const [reviewWords, setReviewWords] = useState<Word[]>(() => {
     const forReview = getWordsForReview(words);
@@ -20,7 +37,7 @@ export function Flashcard({ words, onUpdate, onAnswer }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [sessionStats, setSessionStats] = useState({ correct: 0, incorrect: 0 });
-  const gotItBtnRef = useRef<HTMLButtonElement>(null);
+  const goodBtnRef = useRef<HTMLButtonElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const restartBtnRef = useRef<HTMLButtonElement>(null);
   const lastPlayedIndexRef = useRef(-1);
@@ -32,7 +49,7 @@ export function Flashcard({ words, onUpdate, onAnswer }: Props) {
       restartBtnRef.current?.focus();
       return;
     }
-    if (flipped) gotItBtnRef.current?.focus();
+    if (flipped) goodBtnRef.current?.focus();
     else cardRef.current?.focus();
   }, [flipped, currentIndex, reviewWords.length]);
 
@@ -51,11 +68,21 @@ export function Flashcard({ words, onUpdate, onAnswer }: Props) {
     }
   };
 
-  const handleAnswer = useCallback(
-    (correct: boolean) => {
+  const handleRate = useCallback(
+    (rating: FsrsRating) => {
       if (!currentWord) return;
-      const updated = updateWordAfterReview(currentWord, correct);
-      onUpdate(currentWord.id, updated);
+      const btn = RATING_BUTTONS.find((b) => b.rating === rating)!;
+      const correct = rating !== RATING_AGAIN;
+      const nextFsrs = scheduleReview(currentWord.fsrs, rating);
+      const nextRatings: RatingCounts = {
+        ...currentWord.ratings,
+        [btn.ratingKey]: currentWord.ratings[btn.ratingKey] + 1,
+      };
+      onUpdate(currentWord.id, {
+        fsrs: nextFsrs,
+        ratings: nextRatings,
+        lastRating: rating as RatingValue,
+      });
       setSessionStats((prev) => ({
         correct: prev.correct + (correct ? 1 : 0),
         incorrect: prev.incorrect + (correct ? 0 : 1),
@@ -70,12 +97,12 @@ export function Flashcard({ words, onUpdate, onAnswer }: Props) {
   useEffect(() => {
     if (!flipped) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'k' || e.key === 'K') handleAnswer(true);
-      else if (e.key === 'd' || e.key === 'D') handleAnswer(false);
+      const btn = RATING_BUTTONS.find((b) => b.key === e.key);
+      if (btn) handleRate(btn.rating);
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [flipped, handleAnswer]);
+  }, [flipped, handleRate]);
 
   const handleRestart = () => {
     const forReview = getWordsForReview(words);
@@ -152,12 +179,16 @@ export function Flashcard({ words, onUpdate, onAnswer }: Props) {
 
       {flipped && (
         <div className={s.actions}>
-          <button className={shared.btnIncorrect} onClick={() => handleAnswer(false)}>
-            Don't Know <kbd className={s.kbd}>D</kbd>
-          </button>
-          <button ref={gotItBtnRef} className={shared.btnCorrect} onClick={() => handleAnswer(true)}>
-            Got It! <kbd className={s.kbd}>K</kbd>
-          </button>
+          {RATING_BUTTONS.map((btn) => (
+            <button
+              key={btn.rating}
+              ref={btn.rating === RATING_GOOD ? goodBtnRef : undefined}
+              className={s[btn.className]}
+              onClick={() => handleRate(btn.rating)}
+            >
+              {btn.label} <kbd className={s.kbd}>{btn.key}</kbd>
+            </button>
+          ))}
         </div>
       )}
     </div>

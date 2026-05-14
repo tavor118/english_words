@@ -192,7 +192,7 @@
   color: var(--primary-hover);
 }
 
-/* Stats */
+/* Session-complete summary stats (correct / incorrect totals). */
 .statCorrect {
   color: var(--correct);
 }
@@ -207,6 +207,62 @@
 
 .statIncorrect::before {
   content: '\2717 ';
+}
+
+/* Per-rating word stats (Again / Hard / Good / Easy). The leading digit is a small colored
+   pill (matching the Flashcard button) so it visually reads as a label, not part of the count. */
+.statRating {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.statRating::before {
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 6px;
+  line-height: 1;
+}
+
+.statAgain {
+  composes: statRating;
+}
+
+.statAgain::before {
+  content: '1';
+  background: var(--incorrect);
+}
+
+.statHard {
+  composes: statRating;
+}
+
+.statHard::before {
+  content: '2';
+  background: var(--favorite);
+}
+
+.statGood {
+  composes: statRating;
+}
+
+.statGood::before {
+  content: '3';
+  background: var(--primary);
+}
+
+.statEasy {
+  composes: statRating;
+}
+
+.statEasy::before {
+  content: '4';
+  background: var(--correct);
 }
 
 /* Tags */

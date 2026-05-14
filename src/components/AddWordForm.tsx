@@ -185,8 +185,10 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
               </div>
             )}
             <div className={`${shared.wordStats} ${s.existingCardStats}`}>
-              <span className={shared.statCorrect}>{existingExactPair.correctCount}</span>
-              <span className={shared.statIncorrect}>{existingExactPair.incorrectCount}</span>
+              <span className={shared.statAgain}>{existingExactPair.ratings.again}</span>
+              <span className={shared.statHard}>{existingExactPair.ratings.hard}</span>
+              <span className={shared.statGood}>{existingExactPair.ratings.good}</span>
+              <span className={shared.statEasy}>{existingExactPair.ratings.easy}</span>
             </div>
           </div>
         </div>

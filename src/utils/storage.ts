@@ -1,5 +1,6 @@
-import type { Word, ExerciseProgress } from '../types';
+import type { RatingCounts, Word, ExerciseProgress } from '../types';
 import { EXERCISE_KEYS } from '../types';
+import { createInitialFsrsState } from './spaced-repetition';
 
 const STORAGE_KEY = 'english-words';
 
@@ -8,6 +9,10 @@ function emptyProgress(): ExerciseProgress {
     acc[key] = false;
     return acc;
   }, {} as ExerciseProgress);
+}
+
+function emptyRatings(): RatingCounts {
+  return { again: 0, hard: 0, good: 0, easy: 0 };
 }
 
 function migrateWord(raw: Partial<Word>): Word {
@@ -19,6 +24,8 @@ function migrateWord(raw: Partial<Word>): Word {
     }
   }
   const allPassed = EXERCISE_KEYS.every((k) => progress[k]);
+  // Legacy fields dropped on load: interval/lastReviewedAt/nextReviewAt (replaced by FSRS),
+  // correctCount/incorrectCount (replaced by per-rating ratings).
   return {
     id: raw.id ?? crypto.randomUUID(),
     word: raw.word ?? '',
@@ -26,11 +33,9 @@ function migrateWord(raw: Partial<Word>): Word {
     example: raw.example ?? '',
     tags: Array.isArray(raw.tags) ? raw.tags : [],
     createdAt: raw.createdAt ?? Date.now(),
-    correctCount: raw.correctCount ?? 0,
-    incorrectCount: raw.incorrectCount ?? 0,
-    lastReviewedAt: raw.lastReviewedAt ?? null,
-    nextReviewAt: raw.nextReviewAt ?? Date.now(),
-    interval: raw.interval ?? 1,
+    ratings: raw.ratings ?? emptyRatings(),
+    lastRating: raw.lastRating ?? null,
+    fsrs: raw.fsrs ?? createInitialFsrsState(),
     favorite: raw.favorite ?? false,
     imageUrl: raw.imageUrl ?? null,
     audioUrl: raw.audioUrl ?? null,
@@ -43,13 +48,24 @@ export function migrateWords(words: Partial<Word>[]): Word[] {
   return words.map(migrateWord);
 }
 
+function mergeRatings(a: RatingCounts, b: RatingCounts): RatingCounts {
+  return {
+    again: Math.max(a.again, b.again),
+    hard: Math.max(a.hard, b.hard),
+    good: Math.max(a.good, b.good),
+    easy: Math.max(a.easy, b.easy),
+  };
+}
+
 function mergeWord(a: Word, b: Word): Word {
   const progress = EXERCISE_KEYS.reduce((acc, key) => {
     acc[key] = a.progress[key] || b.progress[key];
     return acc;
   }, {} as ExerciseProgress);
   const learnedTimes = [a.learnedAt, b.learnedAt].filter((t): t is number => t != null);
-  const lastReviewed = Math.max(a.lastReviewedAt ?? 0, b.lastReviewedAt ?? 0);
+  // FSRS state and lastRating co-evolve from the same review event — pick them as a coupled
+  // pair from whichever side has the more recent review, instead of merging field-by-field.
+  const fsrsWinner = (a.fsrs.lastReview ?? 0) >= (b.fsrs.lastReview ?? 0) ? a : b;
   return {
     id: a.id,
     word: a.word || b.word,
@@ -57,11 +73,9 @@ function mergeWord(a: Word, b: Word): Word {
     example: a.example || b.example,
     tags: Array.from(new Set([...a.tags, ...b.tags])),
     createdAt: Math.min(a.createdAt, b.createdAt),
-    correctCount: Math.max(a.correctCount, b.correctCount),
-    incorrectCount: Math.max(a.incorrectCount, b.incorrectCount),
-    lastReviewedAt: lastReviewed > 0 ? lastReviewed : null,
-    nextReviewAt: Math.max(a.nextReviewAt, b.nextReviewAt),
-    interval: Math.max(a.interval, b.interval),
+    ratings: mergeRatings(a.ratings, b.ratings),
+    lastRating: fsrsWinner.lastRating,
+    fsrs: fsrsWinner.fsrs,
     favorite: a.favorite || b.favorite,
     imageUrl: a.imageUrl ?? b.imageUrl,
     audioUrl: a.audioUrl ?? b.audioUrl,

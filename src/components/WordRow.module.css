@@ -226,3 +226,37 @@
 .iconBtnDanger:hover {
   filter: brightness(0.95);
 }
+
+/* Collapsed stats indicator — shows the most recent rating's digit in its button color. */
+.statsToggle {
+  composes: iconBtn;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  min-width: 28px;
+  padding: 4px 10px;
+}
+
+.statsToggle:hover {
+  filter: brightness(0.95);
+}
+
+.statsToggleAgain {
+  composes: statsToggle;
+  background: var(--incorrect);
+}
+
+.statsToggleHard {
+  composes: statsToggle;
+  background: var(--favorite);
+}
+
+.statsToggleGood {
+  composes: statsToggle;
+  background: var(--primary);
+}
+
+.statsToggleEasy {
+  composes: statsToggle;
+  background: var(--correct);
+}

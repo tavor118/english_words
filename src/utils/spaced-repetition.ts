@@ -1,36 +1,58 @@
-import type { Word } from '../types';
+import { type Card, createEmptyCard, fsrs, Rating } from 'ts-fsrs';
+import type { FsrsState, Word } from '../types';
 
-const MIN_INTERVAL = 1;
-const MAX_INTERVAL = 365;
+const scheduler = fsrs();
 
-export function updateWordAfterReview(word: Word, correct: boolean): Word {
-  const now = Date.now();
+export const RATING_AGAIN = Rating.Again;
+export const RATING_HARD = Rating.Hard;
+export const RATING_GOOD = Rating.Good;
+export const RATING_EASY = Rating.Easy;
+export type FsrsRating = typeof RATING_AGAIN | typeof RATING_HARD | typeof RATING_GOOD | typeof RATING_EASY;
 
-  if (correct) {
-    const newInterval = Math.min(word.interval * 2.5, MAX_INTERVAL);
-    return {
-      ...word,
-      correctCount: word.correctCount + 1,
-      lastReviewedAt: now,
-      nextReviewAt: now + newInterval * 24 * 60 * 60 * 1000,
-      interval: newInterval,
-    };
-  }
+export function createInitialFsrsState(): FsrsState {
+  return toFsrsState(createEmptyCard(new Date()));
+}
 
+function toFsrsState(card: Card): FsrsState {
   return {
-    ...word,
-    incorrectCount: word.incorrectCount + 1,
-    lastReviewedAt: now,
-    nextReviewAt: now + MIN_INTERVAL * 24 * 60 * 60 * 1000,
-    interval: MIN_INTERVAL,
+    due: card.due.getTime(),
+    stability: card.stability,
+    difficulty: card.difficulty,
+    elapsedDays: card.elapsed_days,
+    scheduledDays: card.scheduled_days,
+    reps: card.reps,
+    lapses: card.lapses,
+    learningSteps: card.learning_steps,
+    state: card.state,
+    lastReview: card.last_review ? card.last_review.getTime() : null,
   };
+}
+
+function toCard(state: FsrsState): Card {
+  return {
+    due: new Date(state.due),
+    stability: state.stability,
+    difficulty: state.difficulty,
+    elapsed_days: state.elapsedDays,
+    scheduled_days: state.scheduledDays,
+    reps: state.reps,
+    lapses: state.lapses,
+    learning_steps: state.learningSteps,
+    state: state.state,
+    last_review: state.lastReview ? new Date(state.lastReview) : undefined,
+  };
+}
+
+export function scheduleReview(state: FsrsState, rating: FsrsRating, now: Date = new Date()): FsrsState {
+  const result = scheduler.next(toCard(state), now, rating);
+  return toFsrsState(result.card);
 }
 
 export function getWordsForReview(words: Word[]): Word[] {
   const now = Date.now();
   return words
-    .filter((w) => w.nextReviewAt <= now)
-    .sort((a, b) => a.nextReviewAt - b.nextReviewAt);
+    .filter((w) => w.fsrs.due <= now)
+    .sort((a, b) => a.fsrs.due - b.fsrs.due);
 }
 
 export function shuffle<T>(array: T[]): T[] {

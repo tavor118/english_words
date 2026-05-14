@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { loadWords, mergeWordLists, saveWords } from '../utils/storage';
 import { allPassedProgress, emptyProgress } from '../utils/exercise-progress';
 import { EXERCISE_KEYS } from '../types';
-import { createWord } from './helpers';
+import { createFsrsState, createWord } from './helpers';
 
 const store: Record<string, string> = {};
 const localStorageMock = {
@@ -70,16 +70,35 @@ describe('storage', () => {
       translation: 'яблуко',
       example: '',
       tags: [],
-      correctCount: 0,
-      incorrectCount: 0,
-      lastReviewedAt: null,
-      interval: 1,
+      ratings: { again: 0, hard: 0, good: 0, easy: 0 },
       favorite: false,
       imageUrl: null,
       audioUrl: null,
     });
     expect(loaded[0].progress).toEqual(emptyProgress());
     expect(loaded[0].createdAt).toBeGreaterThan(0);
+    expect(loaded[0].fsrs.state).toBe(0);
+    expect(loaded[0].fsrs.reps).toBe(0);
+  });
+
+  it('drops legacy SM-2 fields and initializes fresh FSRS state on load', () => {
+    store['english-words'] = JSON.stringify([
+      {
+        id: 'legacy',
+        word: 'old',
+        translation: 'старий',
+        interval: 30,
+        lastReviewedAt: 1000,
+        nextReviewAt: 9999999,
+      },
+    ]);
+
+    const loaded = loadWords();
+    expect(loaded[0]).not.toHaveProperty('interval');
+    expect(loaded[0]).not.toHaveProperty('nextReviewAt');
+    expect(loaded[0]).not.toHaveProperty('lastReviewedAt');
+    expect(loaded[0].fsrs.state).toBe(0);
+    expect(loaded[0].fsrs.reps).toBe(0);
   });
 });
 
@@ -110,29 +129,26 @@ describe('mergeWordLists', () => {
     });
   });
 
-  it('takes max of review counts and latest lastReviewedAt', () => {
+  it('takes max per-rating count and pairs fsrs + lastRating from whichever side reviewed most recently', () => {
     const local = createWord({
       id: 'shared',
-      correctCount: 5,
-      incorrectCount: 2,
-      lastReviewedAt: 1000,
-      interval: 4,
-      nextReviewAt: 9000,
+      ratings: { again: 2, hard: 1, good: 5, easy: 0 },
+      lastRating: 3,
+      fsrs: createFsrsState({ lastReview: 1000, stability: 4, due: 9000, state: 2 }),
     });
     const remote = createWord({
       id: 'shared',
-      correctCount: 3,
-      incorrectCount: 6,
-      lastReviewedAt: 2000,
-      interval: 2,
-      nextReviewAt: 12000,
+      ratings: { again: 6, hard: 3, good: 3, easy: 1 },
+      lastRating: 1,
+      fsrs: createFsrsState({ lastReview: 2000, stability: 2, due: 12000, state: 2 }),
     });
     const [merged] = mergeWordLists([local], [remote]);
-    expect(merged.correctCount).toBe(5);
-    expect(merged.incorrectCount).toBe(6);
-    expect(merged.lastReviewedAt).toBe(2000);
-    expect(merged.interval).toBe(4);
-    expect(merged.nextReviewAt).toBe(12000);
+    expect(merged.ratings).toEqual({ again: 6, hard: 3, good: 5, easy: 1 });
+    expect(merged.fsrs.lastReview).toBe(2000);
+    expect(merged.fsrs.stability).toBe(2);
+    expect(merged.fsrs.due).toBe(12000);
+    // Remote reviewed more recently, so its lastRating wins along with its FSRS block.
+    expect(merged.lastRating).toBe(1);
   });
 
   it('keeps earliest learnedAt and unions favorite/tags', () => {
