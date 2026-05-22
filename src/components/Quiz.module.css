@@ -71,7 +71,7 @@
   min-width: 22px;
   height: 22px;
   padding: 0 6px;
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
   background: var(--primary-soft);
   color: var(--primary);
   font-size: 12px;
@@ -90,14 +90,14 @@
   composes: option;
   border-color: var(--correct);
   background: var(--correct-bg);
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+  box-shadow: var(--shadow-correct);
 }
 
 .optionIncorrect {
   composes: option;
   border-color: var(--incorrect);
   background: var(--incorrect-bg);
-  box-shadow: 0 2px 8px rgba(244, 63, 94, 0.2);
+  box-shadow: var(--shadow-incorrect);
 }
 
 @media (max-width: 640px) {

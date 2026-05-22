@@ -1,4 +1,51 @@
-export async function findImage(query: string): Promise<string | null> {
+const LANGEEK_BASE = import.meta.env.VITE_LANGEEK_API ?? '';
+
+interface LangeekPhoto {
+  photo?: string;
+  photoThumbnail?: string;
+}
+
+interface LangeekSense {
+  wordPhoto?: LangeekPhoto | null;
+}
+
+interface LangeekEntry {
+  entry?: string;
+  translation?: LangeekSense | null;
+  translations?: Record<string, LangeekSense[]> | null;
+}
+
+function pickPhoto(sense: LangeekSense | null | undefined): string | null {
+  return sense?.wordPhoto?.photo ?? sense?.wordPhoto?.photoThumbnail ?? null;
+}
+
+async function fromLangeek(query: string): Promise<string | null> {
+  if (!LANGEEK_BASE) return null;
+  try {
+    const res = await fetch(`${LANGEEK_BASE}/v1/cs/en/word/?term=${encodeURIComponent(query)}`);
+    if (!res.ok) return null;
+    const data = (await res.json()) as LangeekEntry[];
+    if (!Array.isArray(data) || data.length === 0) return null;
+
+    const queryLower = query.toLowerCase();
+    const exact = data.find((e) => e.entry?.toLowerCase() === queryLower);
+    const target = exact ?? data[0];
+
+    const primary = pickPhoto(target.translation);
+    if (primary) return primary;
+
+    const allSenses = Object.values(target.translations ?? {}).flat();
+    for (const sense of allSenses) {
+      const photo = pickPhoto(sense);
+      if (photo) return photo;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+async function fromWikipedia(query: string): Promise<string | null> {
   try {
     const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrlimit=10&prop=pageimages&piprop=thumbnail&pithumbsize=400&format=json&origin=*`;
     const res = await fetch(searchUrl);
@@ -13,31 +60,30 @@ export async function findImage(query: string): Promise<string | null> {
       thumbnail?: { source: string };
     }>;
 
-    // Prefer pages whose title closely matches the query
     const queryLower = query.toLowerCase();
     const withImages = entries.filter((p) => p.thumbnail?.source);
 
-    // Exact title match first
     const exact = withImages.find((p) => p.title.toLowerCase() === queryLower);
     if (exact) return exact.thumbnail!.source;
 
-    // Title starts with query
     const startsWith = withImages.find((p) =>
       p.title.toLowerCase().startsWith(queryLower)
     );
     if (startsWith) return startsWith.thumbnail!.source;
 
-    // Title contains query
     const contains = withImages.find((p) =>
       p.title.toLowerCase().includes(queryLower)
     );
     if (contains) return contains.thumbnail!.source;
 
-    // Fallback to first result with image
     if (withImages.length > 0) return withImages[0].thumbnail!.source;
 
     return null;
   } catch {
     return null;
   }
+}
+
+export async function findImage(query: string): Promise<string | null> {
+  return (await fromLangeek(query)) ?? (await fromWikipedia(query));
 }

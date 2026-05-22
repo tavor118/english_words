@@ -109,8 +109,8 @@ export function Listening({ words, onUpdate, onAnswer, limit, onComplete }: Prop
       </div>
 
       <div className={s.question}>
-        <h3>Listen and type what you hear:</h3>
-        <div className={l.playWrap}>
+        <div className={l.heading}>
+          <h3>Listen and type what you hear:</h3>
           <PlayButton
             key={currentWord.id}
             word={currentWord.word}
@@ -120,7 +120,12 @@ export function Listening({ words, onUpdate, onAnswer, limit, onComplete }: Prop
           />
         </div>
         {verdict && (
-          <div className={l.hint}>Translation: <strong>{currentWord.translation}</strong></div>
+          <div className={l.hint}>
+            Translation: <strong>{currentWord.translation}</strong>
+            {currentWord.imageUrl && (
+              <img src={currentWord.imageUrl} alt="" className={l.image} />
+            )}
+          </div>
         )}
       </div>
 

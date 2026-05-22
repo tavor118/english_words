@@ -130,46 +130,118 @@ export function WordRow({ word, onDelete, onUpdate }: Props) {
           onSubmit={(e) => { e.preventDefault(); saveEdit(); }}
         >
           <div className={s.editRow}>
-            <input
-              className={`${shared.input} ${s.editInput}`}
-              value={draft.word}
-              onChange={(e) => setDraft({ ...draft, word: e.target.value })}
-              placeholder="Word"
-              aria-label="Word"
-              required
-              autoFocus
-            />
-            <input
-              className={`${shared.input} ${s.editInput}`}
-              value={draft.translation}
-              onChange={(e) => setDraft({ ...draft, translation: e.target.value })}
-              placeholder="Translation"
-              aria-label="Translation"
-              required
-            />
+            <div className={`${shared.inputWrap} ${s.editField}`}>
+              <input
+                className={`${shared.input} ${s.editInput} ${draft.word ? shared.inputHasClear : ''}`}
+                value={draft.word}
+                onChange={(e) => setDraft({ ...draft, word: e.target.value })}
+                placeholder="Word"
+                aria-label="Word"
+                autoCapitalize="none"
+                autoCorrect="off"
+                required
+                autoFocus
+              />
+              {draft.word && (
+                <button
+                  type="button"
+                  className={shared.inputClear}
+                  onClick={() => setDraft({ ...draft, word: '' })}
+                  aria-label="Clear word"
+                  title="Clear"
+                >
+                  &times;
+                </button>
+              )}
+            </div>
+            <div className={`${shared.inputWrap} ${s.editField}`}>
+              <input
+                className={`${shared.input} ${s.editInput} ${draft.translation ? shared.inputHasClear : ''}`}
+                value={draft.translation}
+                onChange={(e) => setDraft({ ...draft, translation: e.target.value })}
+                placeholder="Translation"
+                aria-label="Translation"
+                autoCapitalize="none"
+                required
+              />
+              {draft.translation && (
+                <button
+                  type="button"
+                  className={shared.inputClear}
+                  onClick={() => setDraft({ ...draft, translation: '' })}
+                  aria-label="Clear translation"
+                  title="Clear"
+                >
+                  &times;
+                </button>
+              )}
+            </div>
           </div>
-          <input
-            className={`${shared.input} ${s.editInput}`}
-            value={draft.example}
-            onChange={(e) => setDraft({ ...draft, example: e.target.value })}
-            placeholder="Example sentence"
-            aria-label="Example"
-          />
+          <div className={shared.inputWrap}>
+            <input
+              className={`${shared.input} ${s.editInput} ${draft.example ? shared.inputHasClear : ''}`}
+              value={draft.example}
+              onChange={(e) => setDraft({ ...draft, example: e.target.value })}
+              placeholder="Example sentence"
+              aria-label="Example"
+            />
+            {draft.example && (
+              <button
+                type="button"
+                className={shared.inputClear}
+                onClick={() => setDraft({ ...draft, example: '' })}
+                aria-label="Clear example"
+                title="Clear"
+              >
+                &times;
+              </button>
+            )}
+          </div>
           <div className={s.editRow}>
-            <input
-              className={`${shared.input} ${s.editInput}`}
-              value={draft.tags}
-              onChange={(e) => setDraft({ ...draft, tags: e.target.value })}
-              placeholder="Tags (comma-separated)"
-              aria-label="Tags"
-            />
-            <input
-              className={`${shared.input} ${s.editInput}`}
-              value={draft.imageUrl}
-              onChange={(e) => setDraft({ ...draft, imageUrl: e.target.value })}
-              placeholder="Image URL"
-              aria-label="Image URL"
-            />
+            <div className={`${shared.inputWrap} ${s.editField}`}>
+              <input
+                className={`${shared.input} ${s.editInput} ${draft.tags ? shared.inputHasClear : ''}`}
+                value={draft.tags}
+                onChange={(e) => setDraft({ ...draft, tags: e.target.value })}
+                placeholder="Tags (comma-separated)"
+                aria-label="Tags"
+                autoCapitalize="none"
+                autoCorrect="off"
+              />
+              {draft.tags && (
+                <button
+                  type="button"
+                  className={shared.inputClear}
+                  onClick={() => setDraft({ ...draft, tags: '' })}
+                  aria-label="Clear tags"
+                  title="Clear"
+                >
+                  &times;
+                </button>
+              )}
+            </div>
+            <div className={`${shared.inputWrap} ${s.editField}`}>
+              <input
+                className={`${shared.input} ${s.editInput} ${draft.imageUrl ? shared.inputHasClear : ''}`}
+                value={draft.imageUrl}
+                onChange={(e) => setDraft({ ...draft, imageUrl: e.target.value })}
+                placeholder="Image URL"
+                aria-label="Image URL"
+                autoCapitalize="none"
+                autoCorrect="off"
+              />
+              {draft.imageUrl && (
+                <button
+                  type="button"
+                  className={shared.inputClear}
+                  onClick={() => setDraft({ ...draft, imageUrl: '' })}
+                  aria-label="Clear image URL"
+                  title="Clear"
+                >
+                  &times;
+                </button>
+              )}
+            </div>
           </div>
           <div className={s.editActions}>
             <button type="submit" className={shared.btnPrimary}>Save</button>
@@ -225,16 +297,6 @@ export function WordRow({ word, onDelete, onUpdate }: Props) {
               ))}
             </div>
           )}
-          <div className={s.progress} title={`${passed} of ${EXERCISE_KEYS.length} exercises passed`}>
-            {EXERCISE_KEYS.map((key) => (
-              <span
-                key={key}
-                className={word.progress[key] ? s.dotOn : s.dotOff}
-                title={`${EXERCISE_LABELS[key]}: ${word.progress[key] ? 'passed' : 'not passed yet'}`}
-              />
-            ))}
-            <span className={s.progressCount}>{passed}/{EXERCISE_KEYS.length}</span>
-          </div>
           <div className={s.right}>
             {statsOpen ? (
               <>
@@ -295,6 +357,16 @@ export function WordRow({ word, onDelete, onUpdate }: Props) {
               </button>
             </div>
           </div>
+        </div>
+        <div className={s.progress} title={`${passed} of ${EXERCISE_KEYS.length} exercises passed`}>
+          {EXERCISE_KEYS.map((key) => (
+            <span
+              key={key}
+              className={word.progress[key] ? s.dotOn : s.dotOff}
+              title={`${EXERCISE_LABELS[key]}: ${word.progress[key] ? 'passed' : 'not passed yet'}`}
+            />
+          ))}
+          <span className={s.progressCount}>{passed}/{EXERCISE_KEYS.length}</span>
         </div>
       </div>
     </div>

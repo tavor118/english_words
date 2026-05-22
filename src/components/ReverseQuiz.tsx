@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import type { Word } from '../types';
 import { shuffle } from '../utils/spaced-repetition';
 import { getMinWordsForExercise, getWordsForExercise } from '../utils/exercise-progress';
+import { playWord } from '../utils/pronunciation';
 import { useExerciseAnswer } from '../hooks/useExerciseAnswer';
 import shared from '../styles/shared.module.css';
 import s from './Quiz.module.css';
@@ -42,8 +43,9 @@ export function ReverseQuiz({ words, onUpdate, onAnswer, limit, onComplete }: Pr
       if (selected || !currentWord) return;
       setSelected(optionId);
       recordAnswer(currentWord, optionId === currentWord.id);
+      playWord(currentWord.word, currentWord.audioUrl, (url) => onUpdate(currentWord.id, { audioUrl: url }));
     },
-    [selected, currentWord, recordAnswer]
+    [selected, currentWord, recordAnswer, onUpdate]
   );
 
   useEffect(() => {
@@ -129,7 +131,7 @@ export function ReverseQuiz({ words, onUpdate, onAnswer, limit, onComplete }: Pr
       <div className={s.options}>
         {options.map((option, i) => (
           <button
-            key={option.id}
+            key={`${currentIndex}-${option.id}`}
             className={getOptionClass(option.id)}
             onClick={() => handleSelect(option.id)}
             disabled={!!selected}

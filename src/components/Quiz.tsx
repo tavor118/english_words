@@ -149,7 +149,7 @@ export function Quiz({ words, onUpdate, onAnswer, limit, onComplete }: Props) {
       <div className={s.options}>
         {options.map((option, i) => (
           <button
-            key={option.id}
+            key={`${currentIndex}-${option.id}`}
             className={getOptionClass(option.id)}
             onClick={() => handleSelect(option.id)}
             disabled={!!selected}

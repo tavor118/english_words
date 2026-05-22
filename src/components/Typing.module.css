@@ -28,12 +28,13 @@
   display: block;
   margin: 16px auto 0;
   max-height: 140px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   object-fit: cover;
 }
 
 .form {
   display: flex;
+  justify-content: center;
   gap: 10px;
   width: 100%;
   max-width: 420px;
@@ -41,8 +42,15 @@
 
 .input {
   flex: 1;
+  max-width: 280px;
   font-size: 18px;
   text-align: center;
+}
+
+.submitBtn {
+  width: 140px;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .inputCorrect {
@@ -53,6 +61,10 @@
 .inputIncorrect {
   border-color: var(--incorrect) !important;
   background: var(--incorrect-bg) !important;
+  color: var(--incorrect) !important;
+  text-decoration: line-through;
+  text-decoration-color: var(--incorrect);
+  text-decoration-thickness: 2px;
 }
 
 .reveal {

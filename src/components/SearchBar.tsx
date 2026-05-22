@@ -22,11 +22,24 @@ export function SearchBar({ value, onChange, onSubmitEmpty, spell }: Props) {
             onSubmitEmpty();
           }
         }}
-        className={`${shared.input} ${s.input}`}
+        className={`${shared.input} ${s.input} ${value ? shared.inputHasClear : ''}`}
+        autoCapitalize="none"
+        autoCorrect="off"
       />
       {spell.checking && <span className={shared.inputStatus}>...</span>}
       {spell.valid && <span className={shared.inputStatusValid}>{'\u2713'}</span>}
       {spell.invalid && <span className={shared.inputStatusInvalid}>{'\u2717'}</span>}
+      {value && (
+        <button
+          type="button"
+          className={shared.inputClear}
+          onClick={() => { onChange(''); spell.check(''); }}
+          aria-label="Clear search"
+          title="Clear"
+        >
+          &times;
+        </button>
+      )}
     </div>
   );
 }

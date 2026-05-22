@@ -3,8 +3,8 @@ export const EXERCISE_KEYS = [
   'reverseQuiz',
   'typing',
   'listening',
-  'matchPairs',
   'scrambled',
+  'matchPairs',
 ] as const;
 
 export type ExerciseKey = typeof EXERCISE_KEYS[number];

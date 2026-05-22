@@ -96,6 +96,18 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
     return () => { if (fetchTimerRef.current) clearTimeout(fetchTimerRef.current); };
   }, []);
 
+  const resetForm = () => {
+    if (fetchTimerRef.current) clearTimeout(fetchTimerRef.current);
+    setWord('');
+    setTranslation('');
+    setExample('');
+    setTags('');
+    setImageUrl(null);
+    setTranslating(false);
+    setLoadingImage(false);
+    spell.check('');
+  };
+
   const handleSuggestionClick = (suggestion: string) => {
     setWord(suggestion);
     spell.check(suggestion);
@@ -133,15 +145,28 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
           <input
             id="word"
             type="text"
-            className={`${shared.input} ${s.formGroupInput}`}
+            className={`${shared.input} ${s.formGroupInput} ${word ? shared.inputHasClear : ''}`}
             value={word}
             onChange={(e) => { setWord(e.target.value); spell.check(e.target.value); debouncedFetchWordData(e.target.value); }}
             placeholder="e.g. serendipity"
+            autoCapitalize="none"
+            autoCorrect="off"
             required
           />
           {spell.checking && <span className={shared.inputStatus}>...</span>}
           {spell.valid && <span className={shared.inputStatusValid}>{'\u2713'}</span>}
           {spell.invalid && <span className={shared.inputStatusInvalid}>{'\u2717'}</span>}
+          {word && (
+            <button
+              type="button"
+              className={shared.inputClear}
+              onClick={resetForm}
+              aria-label="Clear word and reset form"
+              title="Clear all"
+            >
+              &times;
+            </button>
+          )}
         </div>
         {spell.invalid && (
           <div className={shared.spellError}>
@@ -220,12 +245,25 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
               <input
                 id="imageUrl"
                 type="url"
-                className={`${shared.input} ${s.formGroupInput}`}
+                className={`${shared.input} ${s.formGroupInput} ${imageUrl ? shared.inputHasClear : ''}`}
                 value={imageUrl ?? ''}
                 onChange={(e) => setImageUrl(e.target.value || null)}
                 placeholder={loadingImage ? 'Searching...' : 'Paste image URL or leave for auto-search'}
+                autoCapitalize="none"
+                autoCorrect="off"
               />
               {loadingImage && <span className={shared.inputStatus}>...</span>}
+              {imageUrl && (
+                <button
+                  type="button"
+                  className={shared.inputClear}
+                  onClick={() => setImageUrl(null)}
+                  aria-label="Clear image URL"
+                  title="Clear"
+                >
+                  &times;
+                </button>
+              )}
             </div>
           </div>
           <div className={s.formGroup}>
@@ -234,36 +272,76 @@ export function AddWordForm({ words, initialWord = '', onAdd }: Props) {
               <input
                 id="translation"
                 type="text"
-                className={`${shared.input} ${s.formGroupInput}`}
+                className={`${shared.input} ${s.formGroupInput} ${translation ? shared.inputHasClear : ''}`}
                 value={translation}
                 onChange={(e) => setTranslation(e.target.value)}
                 placeholder={translating ? 'Translating...' : 'e.g. щасливий випадок'}
+                autoCapitalize="none"
                 required
               />
               {translating && <span className={shared.inputStatus}>...</span>}
+              {translation && (
+                <button
+                  type="button"
+                  className={shared.inputClear}
+                  onClick={() => setTranslation('')}
+                  aria-label="Clear translation"
+                  title="Clear"
+                >
+                  &times;
+                </button>
+              )}
             </div>
           </div>
           <div className={s.formGroup}>
             <label htmlFor="example">Example sentence</label>
-            <input
-              id="example"
-              type="text"
-              className={`${shared.input} ${s.formGroupInput}`}
-              value={example}
-              onChange={(e) => setExample(e.target.value)}
-              placeholder="e.g. Finding that book was pure serendipity."
-            />
+            <div className={shared.inputWrap}>
+              <input
+                id="example"
+                type="text"
+                className={`${shared.input} ${s.formGroupInput} ${example ? shared.inputHasClear : ''}`}
+                value={example}
+                onChange={(e) => setExample(e.target.value)}
+                placeholder="e.g. Finding that book was pure serendipity."
+              />
+              {example && (
+                <button
+                  type="button"
+                  className={shared.inputClear}
+                  onClick={() => setExample('')}
+                  aria-label="Clear example"
+                  title="Clear"
+                >
+                  &times;
+                </button>
+              )}
+            </div>
           </div>
           <div className={s.formGroup}>
             <label htmlFor="tags">Tags (comma-separated)</label>
-            <input
-              id="tags"
-              type="text"
-              className={`${shared.input} ${s.formGroupInput}`}
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="e.g. noun, advanced, literature"
-            />
+            <div className={shared.inputWrap}>
+              <input
+                id="tags"
+                type="text"
+                className={`${shared.input} ${s.formGroupInput} ${tags ? shared.inputHasClear : ''}`}
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+                placeholder="e.g. noun, advanced, literature"
+                autoCapitalize="none"
+                autoCorrect="off"
+              />
+              {tags && (
+                <button
+                  type="button"
+                  className={shared.inputClear}
+                  onClick={() => setTags('')}
+                  aria-label="Clear tags"
+                  title="Clear"
+                >
+                  &times;
+                </button>
+              )}
+            </div>
           </div>
           <button type="submit" className={shared.btnPrimary}>Add Word</button>
         </>

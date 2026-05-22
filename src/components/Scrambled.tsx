@@ -105,6 +105,12 @@ function ScrambledRound({ word, onResolved, onNext }: RoundProps) {
     setUsed([]);
   };
 
+  const handleDontKnow = () => {
+    if (verdict) return;
+    setVerdict('incorrect');
+    onResolved(false);
+  };
+
   const handleRetry = () => {
     setUsed([]);
     setVerdict(null);
@@ -147,6 +153,9 @@ function ScrambledRound({ word, onResolved, onNext }: RoundProps) {
           </button>
           <button className={shared.btnSecondary} onClick={handleClear} disabled={used.length === 0}>
             Clear
+          </button>
+          <button className={shared.btnSecondary} onClick={handleDontKnow}>
+            Don't know
           </button>
         </div>
       )}

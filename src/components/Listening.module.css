@@ -1,15 +1,35 @@
-.playWrap {
+.heading {
   display: flex;
+  align-items: center;
   justify-content: center;
-  padding: 14px 0 4px;
+  gap: 12px;
+}
+
+.heading h3 {
+  margin: 0;
+}
+
+.image {
+  display: block;
+  margin: 12px auto 0;
+  max-width: 100%;
+  max-height: 140px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
 }
 
 .hint {
   margin-top: 14px;
-  color: var(--text-muted);
-  font-size: 14px;
+  color: var(--text);
+  font-size: 15px;
+  text-align: center;
 }
 
 .hint strong {
+  display: block;
+  margin-top: 4px;
   color: var(--text-h);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }

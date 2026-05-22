@@ -1,12 +1,9 @@
 .form {
+  composes: card from '../styles/shared.module.css';
   max-width: 520px;
   margin: 0 auto;
   padding: 32px;
-  background: var(--card-bg);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--card-border);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-lg);
 }
 
 .form h2 {
@@ -93,8 +90,8 @@
   position: absolute;
   top: 6px;
   right: 6px;
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
+  background: var(--overlay);
+  color: var(--text-on-primary);
   border: none;
   border-radius: 50%;
   width: 24px;
@@ -108,5 +105,5 @@
 }
 
 .removeImage:hover {
-  background: rgba(0, 0, 0, 0.8);
+  background: var(--overlay-strong);
 }

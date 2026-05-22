@@ -23,7 +23,7 @@
 .cell {
   padding: 14px 16px;
   border: 2px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   background: var(--card-bg);
   backdrop-filter: blur(8px);
   color: var(--text-h);
@@ -45,7 +45,7 @@
   min-width: 22px;
   height: 22px;
   padding: 0 6px;
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
   background: var(--primary-soft);
   color: var(--primary);
   font-size: 12px;
@@ -64,7 +64,7 @@
   composes: cell;
   border-color: var(--primary);
   background: var(--primary-soft);
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+  box-shadow: var(--shadow-primary);
 }
 
 .cellMatched {

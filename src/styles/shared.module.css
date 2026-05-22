@@ -1,3 +1,12 @@
+/* Frosted surface used by big panels (forms, flashcards, session-complete). */
+.card {
+  background: var(--card-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
 /* Shared input base */
 .input {
   padding: 11px 14px;
@@ -21,13 +30,49 @@
   box-shadow: 0 0 0 3px var(--input-focus);
 }
 
-/* Input with status indicator */
-.inputWithStatus {
+/* Generic positioned wrapper for inputs with absolute-positioned adornments */
+.inputWrap {
   position: relative;
+}
+
+/* Input with status indicator (icon on the left) */
+.inputWithStatus {
+  composes: inputWrap;
 }
 
 .inputWithStatus .input {
   padding-left: 36px;
+}
+
+/* Clear (×) button placed on the right side of an input */
+.inputClear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.inputClear:hover {
+  background: var(--primary-soft);
+  color: var(--text-h);
+}
+
+.inputHasClear {
+  padding-right: 36px;
 }
 
 .inputStatus {
@@ -74,13 +119,13 @@
 .btnPrimary {
   composes: btn;
   background: var(--primary);
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+  color: var(--text-on-primary);
+  box-shadow: var(--shadow-primary);
 }
 
 .btnPrimary:hover {
   background: var(--primary-hover);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+  box-shadow: var(--shadow-primary-hover);
   transform: translateY(-1px);
 }
 
@@ -101,31 +146,31 @@
 .btnCorrect {
   composes: btn;
   background: var(--correct);
-  color: #fff;
+  color: var(--text-on-primary);
   padding: 14px 36px;
   font-size: 15px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-correct);
 }
 
 .btnCorrect:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  box-shadow: var(--shadow-correct-hover);
 }
 
 .btnIncorrect {
   composes: btn;
   background: var(--incorrect);
-  color: #fff;
+  color: var(--text-on-primary);
   padding: 14px 36px;
   font-size: 15px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(244, 63, 94, 0.3);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-incorrect);
 }
 
 .btnIncorrect:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.4);
+  box-shadow: var(--shadow-incorrect-hover);
 }
 
 .btnDelete {
@@ -223,9 +268,9 @@
 .statRating::before {
   font-size: 10px;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-on-primary);
   padding: 2px 6px;
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
   line-height: 1;
 }
 
@@ -330,13 +375,9 @@
 
 /* Session complete (shared between Flashcard & Quiz) */
 .sessionComplete {
+  composes: card;
   text-align: center;
   padding: 40px;
-  background: var(--card-bg);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--card-border);
-  border-radius: 20px;
-  box-shadow: var(--shadow-lg);
 }
 
 .sessionComplete h2 {

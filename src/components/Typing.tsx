@@ -105,7 +105,7 @@ export function Typing({ words, onUpdate, onAnswer, limit, onComplete }: Props) 
       <div className={s.question}>
         <h3>Type the English word for:</h3>
         <div className={s.translation}>{currentWord.translation}</div>
-        {currentWord.imageUrl && (
+        {verdict && currentWord.imageUrl && (
           <img src={currentWord.imageUrl} alt="" className={s.image} />
         )}
       </div>
@@ -124,8 +124,8 @@ export function Typing({ words, onUpdate, onAnswer, limit, onComplete }: Props) 
           placeholder="type here"
         />
         {!verdict && (
-          <button type="submit" className={shared.btnPrimary} disabled={!input.trim()}>
-            Check
+          <button type="submit" className={`${shared.btnPrimary} ${s.submitBtn}`}>
+            {input.trim() ? 'Check' : "Don't know"}
           </button>
         )}
       </form>

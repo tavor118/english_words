@@ -12,6 +12,8 @@ A personal vocabulary trainer. Add words with translations, drill them through s
 - [Data Storage](#data-storage)
 - [Google Drive Sync (optional)](#google-drive-sync-optional)
 - [Pronunciation Audio (optional)](#pronunciation-audio-optional)
+- [Auto-translation](#auto-translation)
+- [Image source (Langeek)](#image-source-langeek)
 - [Local Development](#local-development)
 - [Deployment](#deployment)
 
@@ -20,7 +22,7 @@ A personal vocabulary trainer. Add words with translations, drill them through s
 ## Features
 
 - Add / edit / delete / search / tag / favorite words
-- Auto-translate (MyMemory), auto-image (Wikipedia), spell check, pronunciation
+- Auto-translate (Lingva → Google → MyMemory), auto-image (Langeek → Wikipedia), spell check, pronunciation
 - Import / Export as JSON
 - Dark mode + responsive layout (down to ~320px)
 
@@ -131,6 +133,43 @@ If `VITE_CAMBRIDGE_API` is unset, the app silently skips tier 1 — everything s
    VITE_CAMBRIDGE_API=https://<your-deploy>.vercel.app
    ```
 3. For Pages deployment, add `VITE_CAMBRIDGE_API` as a repo Variable (Settings → Secrets and variables → Actions → Variables). It's already referenced in `.github/workflows/deploy.yml`.
+
+## Auto-translation
+
+When you type a new word, the form auto-fills the Ukrainian translation through a 3-tier fallback chain — each tier tried in order, falling through on network error or trivial echo:
+
+1. **Lingva** (`lingva.ml`) — open-source proxy to Google Translate, no key.
+2. **Google Translate** (unofficial `translate.googleapis.com` endpoint) — same upstream as Lingva but direct, in case the proxy is down.
+3. **MyMemory** (`api.mymemory.translated.net`) — independent crowd-sourced fallback.
+
+All three are public/no-key and CORS-enabled. Successful translations are cached in-memory by lowercase source text for the session.
+
+## Image source (Langeek)
+
+New word images come from a 2-tier chain:
+
+1. **Langeek dictionary** — concrete, vocabulary-focused images keyed to the word's primary meaning. Enabled only if `VITE_LANGEEK_API` is set.
+2. **Wikipedia** — fallback when Langeek is unset or has no entry for the word.
+
+Langeek's API doesn't send CORS headers, so a tiny Cloudflare Worker proxy in `./langeek-proxy/` forwards the request and adds them.
+
+### Enabling Langeek
+
+1. Install [wrangler](https://developers.cloudflare.com/workers/wrangler/install-and-update/) if you don't have it: `npm i -g wrangler`
+2. Deploy the proxy:
+   ```bash
+   cd langeek-proxy
+   wrangler login
+   wrangler deploy
+   ```
+   You'll get a URL like `https://langeek-proxy.<your-subdomain>.workers.dev`.
+3. Add it to `.env`:
+   ```
+   VITE_LANGEEK_API=https://langeek-proxy.<your-subdomain>.workers.dev
+   ```
+4. For Pages deployment, add `VITE_LANGEEK_API` as a repo Variable and reference it in `.github/workflows/deploy.yml`.
+
+Cloudflare Worker free tier covers 100k requests/day; responses are edge-cached for 24h.
 
 ## Local Development
 
