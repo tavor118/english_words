@@ -119,6 +119,7 @@ export function Listening({ words, onUpdate, onAnswer, limit, onComplete }: Prop
             size="md"
           />
         </div>
+        {!verdict && <div className={l.kbdHint}>Space to replay</div>}
         {verdict && (
           <div className={l.hint}>
             Translation: <strong>{currentWord.translation}</strong>
@@ -139,12 +140,18 @@ export function Listening({ words, onUpdate, onAnswer, limit, onComplete }: Prop
           spellCheck={false}
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === ' ' && !input && !verdict && currentWord) {
+              e.preventDefault();
+              pronounce(currentWord.word).catch(() => {});
+            }
+          }}
           disabled={!!verdict}
           placeholder="type what you hear"
         />
         {!verdict && (
-          <button type="submit" className={shared.btnPrimary} disabled={!input.trim()}>
-            Check
+          <button type="submit" className={`${shared.btnPrimary} ${s.submitBtn}`}>
+            {input.trim() ? 'Check' : "Don't know"}
           </button>
         )}
       </form>

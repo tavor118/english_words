@@ -25,6 +25,12 @@
   text-align: center;
 }
 
+.kbdHint {
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
 .hint strong {
   display: block;
   margin-top: 4px;

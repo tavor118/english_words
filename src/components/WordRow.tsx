@@ -298,6 +298,16 @@ export function WordRow({ word, onDelete, onUpdate }: Props) {
             </div>
           )}
           <div className={s.right}>
+            <div className={s.progress} title={`${passed} of ${EXERCISE_KEYS.length} exercises passed`}>
+              {EXERCISE_KEYS.map((key) => (
+                <span
+                  key={key}
+                  className={word.progress[key] ? s.dotOn : s.dotOff}
+                  title={`${EXERCISE_LABELS[key]}: ${word.progress[key] ? 'passed' : 'not passed yet'}`}
+                />
+              ))}
+              <span className={s.progressCount}>{passed}/{EXERCISE_KEYS.length}</span>
+            </div>
             {statsOpen ? (
               <>
                 <span className={shared.statAgain}>{word.ratings.again}</span>
@@ -357,16 +367,6 @@ export function WordRow({ word, onDelete, onUpdate }: Props) {
               </button>
             </div>
           </div>
-        </div>
-        <div className={s.progress} title={`${passed} of ${EXERCISE_KEYS.length} exercises passed`}>
-          {EXERCISE_KEYS.map((key) => (
-            <span
-              key={key}
-              className={word.progress[key] ? s.dotOn : s.dotOff}
-              title={`${EXERCISE_LABELS[key]}: ${word.progress[key] ? 'passed' : 'not passed yet'}`}
-            />
-          ))}
-          <span className={s.progressCount}>{passed}/{EXERCISE_KEYS.length}</span>
         </div>
       </div>
     </div>

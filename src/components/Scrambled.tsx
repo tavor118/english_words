@@ -58,6 +58,12 @@ function ScrambledRound({ word, onResolved, onNext }: RoundProps) {
   useEffect(() => {
     if (verdict) return;
     const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        setVerdict('incorrect');
+        onResolved(false);
+        return;
+      }
       if (e.key === 'Backspace') {
         if (used.length > 0) {
           e.preventDefault();
@@ -122,7 +128,7 @@ function ScrambledRound({ word, onResolved, onNext }: RoundProps) {
       <div className={s.question}>
         <h3>Unscramble the word for:</h3>
         <div className={s.translation}>{word.translation}</div>
-        <div className={s.kbdHint}>Type letters or click tiles · Backspace to undo</div>
+        <div className={s.kbdHint}>Type letters or click tiles · Backspace to undo · Enter for Don't know</div>
       </div>
 
       <div className={`${s.slots} ${verdict === 'correct' ? s.slotsCorrect : ''} ${verdict === 'incorrect' ? s.slotsIncorrect : ''}`}>

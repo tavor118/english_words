@@ -67,6 +67,10 @@
   text-decoration-thickness: 2px;
 }
 
+.inputIncorrect:placeholder-shown {
+  text-decoration: none;
+}
+
 .reveal {
   color: var(--text);
   font-size: 15px;
