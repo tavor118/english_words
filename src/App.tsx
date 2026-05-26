@@ -11,6 +11,7 @@ import { ExerciseRenderer } from './components/ExerciseRenderer';
 import { Marathon } from './components/Marathon';
 import { SyncControl } from './components/SyncControl';
 import { DailyProgressBar } from './components/DailyProgressBar';
+import { ScrollToTop } from './components/ScrollToTop';
 import { exportWords, importWords } from './utils/storage';
 import { DEMO_WORDS } from './utils/demo-data';
 import { findImage } from './utils/image-search';
@@ -138,6 +139,7 @@ function App() {
         )}
       </main>
       <DailyProgressBar points={daily.points} goal={daily.goal} percentage={daily.percentage} />
+      <ScrollToTop />
     </div>
   );
 }

@@ -1,0 +1,64 @@
+.btn {
+  position: fixed;
+  right: 24px;
+  bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  z-index: 60;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--card-border);
+  border-radius: 50%;
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  color: var(--primary);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 20px;
+  line-height: 1;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transform: translateY(10px) scale(0.85);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, color 0.25s ease;
+}
+
+.btnVisible {
+  composes: btn;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.btnVisible:hover {
+  background: var(--primary);
+  color: var(--text-on-primary);
+  box-shadow: var(--shadow-primary-hover);
+  transform: translateY(-2px) scale(1);
+}
+
+.btnVisible:active {
+  transform: translateY(0) scale(0.95);
+}
+
+.btnVisible:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-lg), 0 0 0 3px var(--input-focus);
+}
+
+.arrow {
+  display: block;
+  font-weight: 700;
+  margin-top: -2px;
+}
+
+@media (max-width: 640px) {
+  .btn {
+    right: 14px;
+    bottom: calc(58px + env(safe-area-inset-bottom, 0px));
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+}
