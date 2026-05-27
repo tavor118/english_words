@@ -18,20 +18,29 @@ const ROUND_SIZE = 5;
 const EN_KEYS = ['1', '2', '3', '4', '5'];
 const UA_KEYS = ['6', '7', '8', '9', '0'];
 
-export function MatchPairs({ words, onUpdate, onAnswer, limit, onComplete }: Props) {
-  const [round] = useState<Word[]>(() => {
-    const cap = Math.min(limit ?? ROUND_SIZE, ROUND_SIZE);
-    return shuffle(getWordsForExercise(words, 'matchPairs')).slice(0, cap);
-  });
+interface RoundProps {
+  round: Word[];
+  roundNumber: number;
+  totalRounds: number;
+  onMatched: (word: Word, correct: boolean) => void;
+  onRoundComplete: () => void;
+}
+
+function MatchPairsRound({ round, roundNumber, totalRounds, onMatched, onRoundComplete }: RoundProps) {
   const [enOrder] = useState<Word[]>(() => shuffle(round));
   const [uaOrder] = useState<Word[]>(() => shuffle(round));
   const [selectedEn, setSelectedEn] = useState<string | null>(null);
   const [selectedUa, setSelectedUa] = useState<string | null>(null);
   const [matchedIds, setMatchedIds] = useState<Set<string>>(new Set());
   const [wrong, setWrong] = useState<{ en: string; ua: string } | null>(null);
-  const { stats: sessionStats, recordAnswer } = useExerciseAnswer('matchPairs', { onUpdate, onAnswer });
 
   const allMatched = matchedIds.size === round.length && round.length > 0;
+
+  useEffect(() => {
+    if (!allMatched) return;
+    const t = setTimeout(onRoundComplete, 400);
+    return () => clearTimeout(t);
+  }, [allMatched, onRoundComplete]);
 
   const wordById = useMemo(() => {
     const m = new Map<string, Word>();
@@ -44,7 +53,7 @@ export function MatchPairs({ words, onUpdate, onAnswer, limit, onComplete }: Pro
       const w = wordById.get(enId);
       if (!w) return;
       const correct = enId === uaId;
-      recordAnswer(w, correct);
+      onMatched(w, correct);
       if (correct) {
         setMatchedIds((prev) => new Set(prev).add(enId));
         setSelectedEn(null);
@@ -58,7 +67,7 @@ export function MatchPairs({ words, onUpdate, onAnswer, limit, onComplete }: Pro
         }, 600);
       }
     },
-    [wordById, recordAnswer]
+    [wordById, onMatched]
   );
 
   const handleSelectEn = useCallback(
@@ -95,46 +104,6 @@ export function MatchPairs({ words, onUpdate, onAnswer, limit, onComplete }: Pro
     return () => window.removeEventListener('keydown', handler);
   }, [enOrder, uaOrder, handleSelectEn, handleSelectUa]);
 
-  const minWords = getMinWordsForExercise('matchPairs');
-  const cannotRun = words.length < minWords || round.length === 0;
-  const bail = cannotRun || allMatched;
-
-  useEffect(() => {
-    if (bail) onComplete?.();
-  }, [bail, onComplete]);
-
-  if (bail && onComplete) return null;
-
-  if (words.length < minWords) {
-    return (
-      <div className={s.container}>
-        <p className={shared.emptyState}>Add at least {minWords} words to play Match Pairs.</p>
-      </div>
-    );
-  }
-
-  if (round.length === 0) {
-    return (
-      <div className={s.container}>
-        <p className={shared.emptyState}>All words have passed Match Pairs. Reset a word's progress to practice again.</p>
-      </div>
-    );
-  }
-
-  if (allMatched) {
-    return (
-      <div className={s.container}>
-        <div className={shared.sessionComplete}>
-          <h2>Match Pairs Complete!</h2>
-          <div className={shared.sessionStats}>
-            <span className={shared.statCorrect}>{sessionStats.correct} correct</span>
-            <span className={shared.statIncorrect}>{sessionStats.incorrect} incorrect</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const cellClass = (id: string, side: 'en' | 'ua', selected: string | null) => {
     if (matchedIds.has(id)) return s.cellMatched;
     if (wrong && wrong[side] === id) return s.cellWrong;
@@ -143,8 +112,9 @@ export function MatchPairs({ words, onUpdate, onAnswer, limit, onComplete }: Pro
   };
 
   return (
-    <div className={s.container}>
+    <>
       <div className={shared.progress}>
+        {totalRounds > 1 && `Set ${roundNumber} / ${totalRounds} · `}
         {matchedIds.size} / {round.length} matched
       </div>
 
@@ -176,6 +146,76 @@ export function MatchPairs({ words, onUpdate, onAnswer, limit, onComplete }: Pro
           ))}
         </div>
       </div>
+    </>
+  );
+}
+
+export function MatchPairs({ words, onUpdate, onAnswer, limit, onComplete }: Props) {
+  const [pool] = useState<Word[]>(() => {
+    const cap = limit ?? ROUND_SIZE;
+    return shuffle(getWordsForExercise(words, 'matchPairs')).slice(0, cap);
+  });
+  const rounds = useMemo<Word[][]>(() => {
+    const chunks: Word[][] = [];
+    for (let i = 0; i < pool.length; i += ROUND_SIZE) {
+      chunks.push(pool.slice(i, i + ROUND_SIZE));
+    }
+    return chunks;
+  }, [pool]);
+  const [roundIndex, setRoundIndex] = useState(0);
+  const { stats: sessionStats, recordAnswer } = useExerciseAnswer('matchPairs', { onUpdate, onAnswer });
+
+  const minWords = getMinWordsForExercise('matchPairs');
+  const finished = roundIndex >= rounds.length;
+  const cannotRun = words.length < minWords || pool.length === 0;
+  const bail = cannotRun || finished;
+
+  useEffect(() => {
+    if (bail) onComplete?.();
+  }, [bail, onComplete]);
+
+  if (bail && onComplete) return null;
+
+  if (words.length < minWords) {
+    return (
+      <div className={s.container}>
+        <p className={shared.emptyState}>Add at least {minWords} words to play Match Pairs.</p>
+      </div>
+    );
+  }
+
+  if (pool.length === 0) {
+    return (
+      <div className={s.container}>
+        <p className={shared.emptyState}>All words have passed Match Pairs. Reset a word's progress to practice again.</p>
+      </div>
+    );
+  }
+
+  if (finished) {
+    return (
+      <div className={s.container}>
+        <div className={shared.sessionComplete}>
+          <h2>Match Pairs Complete!</h2>
+          <div className={shared.sessionStats}>
+            <span className={shared.statCorrect}>{sessionStats.correct} correct</span>
+            <span className={shared.statIncorrect}>{sessionStats.incorrect} incorrect</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={s.container}>
+      <MatchPairsRound
+        key={roundIndex}
+        round={rounds[roundIndex]}
+        roundNumber={roundIndex + 1}
+        totalRounds={rounds.length}
+        onMatched={recordAnswer}
+        onRoundComplete={() => setRoundIndex((i) => i + 1)}
+      />
     </div>
   );
 }

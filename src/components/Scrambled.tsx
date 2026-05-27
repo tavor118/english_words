@@ -21,11 +21,11 @@ interface Tile {
 }
 
 function makeTiles(word: string): Tile[] {
-  const letters = word.toLowerCase().replace(/\s+/g, '').split('');
-  const tiles = letters.map((char, id) => ({ char, id }));
+  const chars = normalize(word).split('');
+  const tiles = chars.map((char, id) => ({ char, id }));
   for (let attempt = 0; attempt < 5; attempt++) {
     const shuffled = shuffle(tiles);
-    if (shuffled.map((t) => t.char).join('') !== letters.join('')) {
+    if (shuffled.map((t) => t.char).join('') !== chars.join('')) {
       return shuffled;
     }
   }
@@ -33,8 +33,11 @@ function makeTiles(word: string): Tile[] {
 }
 
 function normalize(value: string): string {
-  return value.toLowerCase().replace(/\s+/g, '');
+  return value.toLowerCase().trim().replace(/\s+/g, ' ');
 }
+
+// U+2423 OPEN BOX — visible "space" glyph for the space tile and filled space slots.
+const SPACE_GLYPH = '␣';
 
 interface RoundProps {
   word: Word;
@@ -72,8 +75,9 @@ function ScrambledRound({ word, onResolved, onNext }: RoundProps) {
         return;
       }
       if (e.key.length !== 1) return;
-      const lower = e.key.toLowerCase();
-      if (!/^[a-z]$/.test(lower)) return;
+      const lower = e.key === ' ' ? ' ' : e.key.toLowerCase();
+      if (!/^[a-z ]$/.test(lower)) return;
+      if (lower === ' ') e.preventDefault();
       const tile = tiles.find((t) => t.char === lower && !used.includes(t.id));
       if (!tile) return;
       const next = [...used, tile.id];
@@ -128,13 +132,13 @@ function ScrambledRound({ word, onResolved, onNext }: RoundProps) {
       <div className={s.question}>
         <h3>Unscramble the word for:</h3>
         <div className={s.translation}>{word.translation}</div>
-        <div className={s.kbdHint}>Type letters or click tiles · Backspace to undo · Enter for Don't know</div>
+        <div className={s.kbdHint}>Type letters and spaces or click tiles · Backspace to undo · Enter for Don't know</div>
       </div>
 
       <div className={`${s.slots} ${verdict === 'correct' ? s.slotsCorrect : ''} ${verdict === 'incorrect' ? s.slotsIncorrect : ''}`}>
         {Array.from({ length: target.length }).map((_, i) => (
           <div key={i} className={s.slot}>
-            {built[i] ?? ''}
+            {built[i] === ' ' ? SPACE_GLYPH : (built[i] ?? '')}
           </div>
         ))}
       </div>
@@ -146,8 +150,9 @@ function ScrambledRound({ word, onResolved, onNext }: RoundProps) {
             className={used.includes(tile.id) ? s.tileUsed : s.tile}
             onClick={() => handleTile(tile.id)}
             disabled={used.includes(tile.id) || !!verdict}
+            aria-label={tile.char === ' ' ? 'space' : tile.char}
           >
-            {tile.char}
+            {tile.char === ' ' ? SPACE_GLYPH : tile.char}
           </button>
         ))}
       </div>

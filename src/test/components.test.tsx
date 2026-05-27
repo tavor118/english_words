@@ -425,18 +425,43 @@ describe('MatchPairs', () => {
   });
 
   it('accepts keyboard shortcuts for both columns', () => {
-    const word = createWord({ word: 'apple', translation: 'яблуко' });
+    const words = [
+      createWord({ word: 'apple', translation: 'яблуко' }),
+      createWord({ word: 'banana', translation: 'банан' }),
+    ];
     const onUpdate = vi.fn();
-    render(<MatchPairs words={[word]} onUpdate={onUpdate} />);
+    render(<MatchPairs words={words} onUpdate={onUpdate} />);
 
-    // With a single word, the EN column has one card at "1" and the UA column has one at "6".
-    fireEvent.keyDown(window, { key: '1' });
-    fireEvent.keyDown(window, { key: '6' });
+    // Positions are shuffled — read the keyboard digit each card is rendered with.
+    const appleBtn = screen.getByRole('button', { name: /apple$/ });
+    const yablukoBtn = screen.getByRole('button', { name: /яблуко$/ });
+    const enKey = appleBtn.textContent?.[0] ?? '';
+    const uaKey = yablukoBtn.textContent?.[0] ?? '';
+    expect(enKey).toMatch(/^[1-5]$/);
+    expect(uaKey).toMatch(/^[6-90]$/);
+
+    fireEvent.keyDown(window, { key: enKey });
+    fireEvent.keyDown(window, { key: uaKey });
 
     expect(onUpdate).toHaveBeenCalledWith(
-      word.id,
+      words[0].id,
       expect.objectContaining({ progress: expect.objectContaining({ matchPairs: true }) })
     );
+  });
+
+  it('splits a Marathon-size pool (limit=10) into two rounds of 5', () => {
+    const words = Array.from({ length: 10 }, (_, i) =>
+      createWord({ word: `en${i}`, translation: `ua${i}` })
+    );
+    render(<MatchPairs words={words} onUpdate={vi.fn()} limit={10} />);
+
+    // Set indicator and progress reflect 5-pair sub-rounds even though the pool is 10.
+    expect(screen.getByText(/Set 1 \/ 2/)).toBeInTheDocument();
+    expect(screen.getByText(/0 \/ 5 matched/)).toBeInTheDocument();
+
+    // Only 10 cell buttons on screen (5 EN + 5 UA), not 20.
+    const cells = screen.getAllByRole('button').filter((b) => /^[0-9]/.test(b.textContent ?? ''));
+    expect(cells).toHaveLength(10);
   });
 });
 
@@ -473,6 +498,41 @@ describe('Scrambled', () => {
       word.id,
       expect.objectContaining({ progress: expect.objectContaining({ scrambled: true }) })
     );
+  });
+
+  it('treats space as a tile in multi-word answers — user enters the space themselves', () => {
+    const word = createWord({ word: 'ice cream', translation: 'морозиво' });
+    const onUpdate = vi.fn();
+    render(<Scrambled words={[word]} onUpdate={onUpdate} />);
+
+    // 9 character tiles for "ice cream" — 8 letters + 1 space tile (rendered as "␣").
+    const tileButtons = screen.getAllByRole('button').filter(
+      (b) => /^[␣a-z]$/.test(b.textContent?.trim() ?? '')
+    );
+    expect(tileButtons).toHaveLength(9);
+    expect(screen.getByRole('button', { name: /^space$/i })).toBeInTheDocument();
+
+    // Typing the letters in order (with the spacebar at the right spot) completes the puzzle.
+    for (const ch of 'ice cream') {
+      fireEvent.keyDown(window, { key: ch });
+    }
+
+    expect(onUpdate).toHaveBeenCalledWith(
+      word.id,
+      expect.objectContaining({ progress: expect.objectContaining({ scrambled: true }) })
+    );
+  });
+
+  it('does not auto-resolve a multi-word answer when the user skips the space', () => {
+    const word = createWord({ word: 'ice cream', translation: 'морозиво' });
+    const onUpdate = vi.fn();
+    render(<Scrambled words={[word]} onUpdate={onUpdate} />);
+
+    // Letters alone leave the space slot unfilled — no verdict, no onUpdate.
+    for (const ch of 'icecream') {
+      fireEvent.keyDown(window, { key: ch });
+    }
+    expect(onUpdate).not.toHaveBeenCalled();
   });
 });
 

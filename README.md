@@ -44,7 +44,7 @@ Each session pulls only words where that specific exercise is not yet passed. Wr
 ### Practice vs Marathon
 
 - **Practice** drills one exercise at a time on every unpassed word.
-- **Marathon** cycles through all six in fixed order, up to **10 words per step** (Match Pairs is capped at 5 pairs). Steps with too few eligible words are skipped silently.
+- **Marathon** cycles through all six in fixed order, up to **10 words per step** (Match Pairs runs them as two back-to-back sets of 5 pairs). Steps with too few eligible words are skipped silently.
 
 ### Flashcards (spaced repetition)
 
@@ -67,7 +67,7 @@ A bottom progress bar tracks **1 point per correct answer** (Match Pairs awards 
 - **Quiz / Reverse Quiz** — `1`–`4` to pick, `Enter` to advance.
 - **Typing / Listening** — type, `Enter` to check, `Enter` again to advance. In Listening, `Space` (on an empty input) replays the audio.
 - **Match Pairs** — `1`–`5` for the EN column, `6`–`9` / `0` for the UA column.
-- **Scrambled** — type letters (auto-placed), `Backspace` to undo, `Enter` for "Don't know" (before completion) or to advance (after).
+- **Scrambled** — type letters or `Space` (auto-placed; multi-word answers include a space tile), `Backspace` to undo, `Enter` for "Don't know" (before completion) or to advance (after).
 - **Flashcards** — `Enter` / `Space` to flip; once flipped, `1` Again / `2` Hard / `3` Good / `4` Easy.
 
 ## Data Storage
