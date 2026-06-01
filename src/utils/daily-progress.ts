@@ -1,6 +1,6 @@
 const STORAGE_KEY = 'english-words-daily-progress';
 
-export const DAILY_GOAL = 50;
+export const DAILY_GOAL = 100;
 
 export interface DailyProgress {
   date: string; // YYYY-MM-DD in local time

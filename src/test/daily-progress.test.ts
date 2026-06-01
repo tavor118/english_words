@@ -41,7 +41,7 @@ describe('daily-progress', () => {
     expect(p.date).toBe(todayKey());
   });
 
-  it('caps the goal at 50 by default', () => {
-    expect(DAILY_GOAL).toBe(50);
+  it('caps the goal at 100 by default', () => {
+    expect(DAILY_GOAL).toBe(100);
   });
 });
